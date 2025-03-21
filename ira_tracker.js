@@ -36,6 +36,8 @@ var production_data;
 // Define ordinal scale for the colors in the map
 var color;
 
+var geojson;
+
 // Toggle the program checkboxes visibility
 function showProgramCheckboxes() {
   var checkboxes = document.getElementById("program_checkboxes");
@@ -66,9 +68,27 @@ function getProgramSelectedValues() {
   checkboxes.forEach(function(checkbox) {
     selected_programs.push(checkbox.value);
   });
+
+  updateTableData();
   update_table();
-  // Refresh map styling
+  updateMapData();
+
+  let curr_values;
+  if (show_output_or_employment == "output") {
+    curr_values = mapData.map(d => d.output);
+  }
+  else {
+    curr_values = mapData.map(d => d.employment);
+  }
+
+  let max_value = Math.max(...curr_values);
+  setColorScale(max_value);
+  addMapLegend(max_value);
+
+  
   geojson.setStyle(style);
+
+  d3.select(".industry_breakdown_table div:nth-child(3)").text("For programs " + selected_programs);
   return selected_programs;
 }
 
@@ -78,15 +98,32 @@ function getProjectSelectedValues() {
   checkboxes.forEach(function(checkbox) {
     selected_projects.push(checkbox.value);
   });
+  updateTableData();
   update_table();
-  // Refresh map styling
+  updateMapData();
+
+  let curr_values;
+  if (show_output_or_employment == "output") {
+    curr_values = mapData.map(d => d.output);
+  }
+  else {
+    curr_values = mapData.map(d => d.employment);
+  }
+
+  let max_value = Math.max(...curr_values);
+  setColorScale(max_value);
+  addMapLegend(max_value);
+
+  
   geojson.setStyle(style);
+
+  d3.select(".industry_breakdown_table div:nth-child(4)").text("For projects " + selected_projects);
   return selected_projects;
 }
 
 
-function update_table() {
-
+let tableData;
+function updateTableData() {
   let filtered_data;
   if(current_geography == "United States") {
     filtered_data = full_data;
@@ -105,14 +142,13 @@ function update_table() {
     filtered_data = filtered_data.filter(d => selected_projects.includes(d.project));
   }
 
-  console.log(filtered_data);
-
+  
   let industry_list = filtered_data.map(d => d.industry_desc);
   industry_list = [...new Set(industry_list)];
-  industry_list.splice(industry_list.indexOf("All"), 1);
+  
 
 
-  let table_data = [];
+  let new_table_data = [];
   let output_total;
   let employment_total;
   for(industry of industry_list) {
@@ -126,11 +162,15 @@ function update_table() {
       employment_total += parseFloat(curr_record.employment);
     }
 
-    table_data.push({"industry_desc": industry,
+    new_table_data.push({"industry_desc": industry,
                      "output": Number(output_total.toFixed(4)),
                      "employment": Number(employment_total.toFixed(4))});
   }
-  console.log(table_data);
+  
+  tableData = new_table_data;
+}
+
+function update_table() {
 
   // Select the table body
   let table_selection = d3.select(".industry_breakdown_table tbody");
@@ -140,7 +180,7 @@ function update_table() {
 
   // Create a new tr element for each item in the dataset
   let new_row = table_selection.selectAll("tr")
-    .data(table_data)
+    .data(tableData)
     .join("tr");
 
   /* Within each row, append four td elements to hold the
@@ -155,37 +195,114 @@ function update_table() {
 }
 
 
+function setColorScale(max_value) {
+  if (show_output_or_employment == "output") {  
+    color = d3.scaleSequential([0, max_value], d3.interpolateBlues);
+  }
+  else {
+    color = d3.scaleSequential([0, max_value], d3.interpolateOranges);
+  }
+}
+
+var mapData;
+function updateMapData() {
+  mapData = full_data;
+
+  // Filter based on selected programs if any are selected
+  if (selected_programs.length > 0) {
+      mapData = mapData.filter(d => selected_programs.includes(d.program));
+  }
+    
+  // Filter based on selected projects if any are selected
+  if (selected_projects.length > 0) {
+      mapData = mapData.filter(d => selected_projects.includes(d.project));
+  }
+
+  let state_list = mapData.map(d => d.region);
+  state_list = [...new Set(state_list)];
+
+  let new_map_data = [];
+  let output_total;
+  let employment_total;
+  for(curr_state of state_list) {
+
+    let curr_state_data = mapData.filter(d => d.region === curr_state);
+
+    output_total = 0;
+    employment_total = 0;
+    for(curr_record of curr_state_data) {
+      output_total += parseFloat(curr_record.output);
+      employment_total += parseFloat(curr_record.employment);
+    }
+
+    new_map_data.push({"region": curr_state,
+                       "output": Number(output_total.toFixed(4)),
+                       "employment": Number(employment_total.toFixed(4))});
+  }
+
+  mapData = new_map_data;
+  console.log(mapData);
+
+}
+
+function addMapLegend(max_value) {
+  d3.select(".legend").remove();
+
+  var legend = L.control({position: 'bottomright'});
+
+  legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+    
+    // Create a container for the gradient
+    var gradientDiv = document.createElement('div');
+    gradientDiv.className = 'gradient';
+    
+    // Set the gradient colors as CSS variables
+    gradientDiv.style.setProperty('--start-color', color(0));
+    gradientDiv.style.setProperty('--end-color', color(max_value));
+    
+    // Create labels container
+    var labelsDiv = document.createElement('div');
+    labelsDiv.className = 'labels';
+    
+    // Add min and max labels
+    labelsDiv.innerHTML = `
+      <span>0</span>
+      <span>${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+    `;
+    
+    // Add elements to legend
+    div.appendChild(gradientDiv);
+    div.appendChild(labelsDiv);
+
+    return div;
+  };
+
+  legend.addTo(map);
+}
+
+function style(feature) {
+
+  // Extract the data for this state
+  let state_data = mapData.filter(d => d.region === feature.properties.NAME);
+
+  let state_total = 0;
+  if (state_data.length > 0) {
+    state_total = state_data[0][show_output_or_employment];
+  }
+
+  return {
+      fillColor: color(state_total),
+      weight: 1,
+      opacity: 1,
+      color: '#aaa',
+      fillOpacity: 0.7
+  };
+}
+
 function RenderChart(map) {
 
-  function style(feature) {
-      // Extract the data for this state
-      let state_data = full_data.filter(d => d.region === feature.properties.NAME);
-      
-      // Filter based on selected programs if any are selected
-      if (selected_programs.length > 0) {
-          state_data = state_data.filter(d => selected_programs.includes(d.program) || d.program === "All");
-      }
-      
-      // Filter based on selected projects if any are selected
-      if (selected_projects.length > 0) {
-          state_data = state_data.filter(d => selected_projects.includes(d.project) || d.project === "All");
-      }
 
-      // Map to output or employment values and sum
-      let state_sum = 0;
-      if(state_data.length > 0) {
-          const value_type = show_output_or_employment === "output" ? "output" : "employment";
-          state_sum = state_data.map(d => parseFloat(d[value_type])).reduce((a, b) => a + b);
-      }
-
-      return {
-          fillColor: color(state_sum),
-          weight: 1,
-          opacity: 1,
-          color: '#aaa',
-          fillOpacity: 0.7
-      };
-  }
 
   function highlightFeature(e) {
     var layer = e.target;
@@ -211,6 +328,7 @@ function RenderChart(map) {
       current_geography = "United States";
       map.setView([37.8, -96], 3);
       info.update();
+      updateTableData();
       update_table();
       d3.select(".industry_breakdown_table div:nth-child(2)").text("For the United States");
     }
@@ -218,12 +336,10 @@ function RenderChart(map) {
       current_geography = geography_name;
       map.fitBounds(e.target.getBounds());
       info.update(geography_name);
+      updateTableData();
       update_table();
       d3.select(".industry_breakdown_table div:nth-child(2)").text("For " + geography_name);
     }
-
-    treemap_zoomed = false;
-
 
   }
 
@@ -235,46 +351,42 @@ function RenderChart(map) {
     });
   }
 
-  var geojson;
+  
   var info;
 
-
-  var data_to_bind;
-  var treemap_zoomed = false;
-
-  
-  function setColorScale(max_value) {
-    if (show_output_or_employment == "output") {  
-      color = d3.scaleSequential([0, max_value], d3.interpolateBlues);
-    }
-    else {
-      color = d3.scaleSequential([0, max_value], d3.interpolateOranges);
-    }
-  }
-
-  // Create the scales
-  //const x = d3.scaleLinear().domain([0,width]).rangeRound([0, width]);
-  //const y = d3.scaleLinear().domain([0,height]).rangeRound([0, height]);
-
   d3.csv("./economic_impact_data.csv").then(function(loaded_data) {
-      console.log(loaded_data);
+      
       productionData = loaded_data;
 
       full_data = productionData;
 
-      const filtered_data = loaded_data.filter(d => d.industry_code === "All");
+      updateMapData();
 
-      const output_values = filtered_data.map(d => parseFloat(d.output));
+      
 
-      let max_value = Math.max(...output_values);
+      //const output_values = filtered_data.map(d => parseFloat(d.output));
+
+      //let max_value = Math.max(...output_values);
+      let curr_values;
+      if (show_output_or_employment == "output") {
+        curr_values = mapData.map(d => d.output);
+      }
+      else {
+        curr_values = mapData.map(d => d.employment);
+      }
+    
+      let max_value = Math.max(...curr_values);
+
       setColorScale(max_value);
       addMapLegend(max_value);
 
+      
       // Get unique program names
       let program_names = loaded_data.map(d => d.program);
       program_names = [...new Set(program_names)];
-      program_names.splice(program_names.indexOf("All"), 1);
+      
 
+      
       let checkboxes_group = d3.select("#program_checkboxes");
 
       let checkboxes = checkboxes_group.selectAll("input")
@@ -301,7 +413,7 @@ function RenderChart(map) {
       // Get unique project names
       let project_names = loaded_data.map(d => d.project);
       project_names = [...new Set(project_names)];
-      project_names.splice(project_names.indexOf("All"), 1);
+      
 
       let project_checkboxes_group = d3.select("#project_checkboxes");
 
@@ -329,11 +441,19 @@ function RenderChart(map) {
 
       document.getElementById('radio_output').addEventListener('change', function() {
         show_output_or_employment = "output";
-        const filtered_data = full_data.filter(d => d.industry_code === "All");
 
-        const output_values = filtered_data.map(d => parseFloat(d.output));
-  
-        let max_value = Math.max(...output_values);
+        updateMapData();
+
+        let curr_values;
+        if (show_output_or_employment == "output") {
+          curr_values = mapData.map(d => d.output);
+        }
+        else {
+          curr_values = mapData.map(d => d.employment);
+        }
+      
+        let max_value = Math.max(...curr_values);
+
         setColorScale(max_value);
         d3.select(".legend").remove();
         addMapLegend(max_value);
@@ -343,17 +463,26 @@ function RenderChart(map) {
 
       document.getElementById('radio_employment').addEventListener('change', function() {
         show_output_or_employment = "employment";
-        const filtered_data = full_data.filter(d => d.industry_code === "All");
 
-        const output_values = filtered_data.map(d => parseFloat(d.employment));
-  
-        let max_value = Math.max(...output_values);
+        updateMapData();
+
+        let curr_values;
+        if (show_output_or_employment == "output") {
+          curr_values = mapData.map(d => d.output);
+        }
+        else {
+          curr_values = mapData.map(d => d.employment);
+        }
+      
+        let max_value = Math.max(...curr_values);
+
         setColorScale(max_value);
         d3.select(".legend").remove();
         addMapLegend(max_value);
         geojson.setStyle(style);
       });
 
+      updateTableData();
       update_table();
   });
 
@@ -401,39 +530,7 @@ function RenderChart(map) {
 
   }
 
-  function addMapLegend(max_value) {
-    var legend = L.control({position: 'bottomright'});
 
-    legend.onAdd = function (map) {
-      var div = L.DomUtil.create('div', 'info legend');
-      
-      // Create a container for the gradient
-      var gradientDiv = document.createElement('div');
-      gradientDiv.className = 'gradient';
-      
-      // Set the gradient colors as CSS variables
-      gradientDiv.style.setProperty('--start-color', color(0));
-      gradientDiv.style.setProperty('--end-color', color(max_value));
-      
-      // Create labels container
-      var labelsDiv = document.createElement('div');
-      labelsDiv.className = 'labels';
-      
-      // Add min and max labels
-      labelsDiv.innerHTML = `
-        <span>0</span>
-        <span>${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
-      `;
-      
-      // Add elements to legend
-      div.appendChild(gradientDiv);
-      div.appendChild(labelsDiv);
-
-      return div;
-    };
-
-    legend.addTo(map);
-  }
 
 }
 

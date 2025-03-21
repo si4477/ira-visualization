@@ -40,13 +40,17 @@ data = data.groupby(["program",
                      "industry_desc"]).agg({'output':'sum',
                                             'employment':'sum'}).reset_index()
 
-state_sum = data.groupby(["region"]).agg({'output':'sum', 'employment':'sum'}).reset_index()
-state_sum["program"] = "All"
-state_sum["project"] = "All"
-state_sum["industry_code"] = "All"
-state_sum["industry_desc"] = "All"
+# Create a new set of rows with the output and employment columns
+# summed by region; for these rows, set the program, project,
+# industry code, and industry description to "All"
+# state_sum = data.groupby(["region"]).agg({'output':'sum', 'employment':'sum'}).reset_index()
+# state_sum["program"] = "All"
+# state_sum["project"] = "All"
+# state_sum["industry_code"] = "All"
+# state_sum["industry_desc"] = "All"
 
-data = pd.concat([data, state_sum])
+# Concatenate the original data with the new rows
+# data = pd.concat([data, state_sum])
 
 # Write the results to a .csv file
 data.to_csv("economic_impact_data.csv", index=False)
