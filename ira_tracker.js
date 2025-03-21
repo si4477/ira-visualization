@@ -31,7 +31,6 @@ var selected_projects = [];
 var current_geography = "United States";
 
 var full_data;
-var production_data;
 
 // Define ordinal scale for the colors in the map
 var color;
@@ -187,7 +186,6 @@ function update_table() {
      industry description, industry code, output, and
      employment values */
   new_row.append("td").text(d => d.industry_desc);
-  new_row.append("td").text(0);
   new_row.append("td").text(d => d.output);
   new_row.append("td").text(d => d.employment);
 
@@ -241,7 +239,6 @@ function updateMapData() {
   }
 
   mapData = new_map_data;
-  console.log(mapData);
 
 }
 
@@ -356,17 +353,10 @@ function RenderChart(map) {
 
   d3.csv("./economic_impact_data.csv").then(function(loaded_data) {
       
-      productionData = loaded_data;
-
-      full_data = productionData;
+      full_data = loaded_data;
 
       updateMapData();
 
-      
-
-      //const output_values = filtered_data.map(d => parseFloat(d.output));
-
-      //let max_value = Math.max(...output_values);
       let curr_values;
       if (show_output_or_employment == "output") {
         curr_values = mapData.map(d => d.output);
@@ -382,7 +372,7 @@ function RenderChart(map) {
 
       
       // Get unique program names
-      let program_names = loaded_data.map(d => d.program);
+      let program_names = full_data.map(d => d.program);
       program_names = [...new Set(program_names)];
       
 
@@ -411,7 +401,7 @@ function RenderChart(map) {
       });
 
       // Get unique project names
-      let project_names = loaded_data.map(d => d.project);
+      let project_names = full_data.map(d => d.project);
       project_names = [...new Set(project_names)];
       
 
@@ -445,13 +435,7 @@ function RenderChart(map) {
         updateMapData();
 
         let curr_values;
-        if (show_output_or_employment == "output") {
-          curr_values = mapData.map(d => d.output);
-        }
-        else {
-          curr_values = mapData.map(d => d.employment);
-        }
-      
+        curr_values = mapData.map(d => d.output);
         let max_value = Math.max(...curr_values);
 
         setColorScale(max_value);
@@ -467,13 +451,7 @@ function RenderChart(map) {
         updateMapData();
 
         let curr_values;
-        if (show_output_or_employment == "output") {
-          curr_values = mapData.map(d => d.output);
-        }
-        else {
-          curr_values = mapData.map(d => d.employment);
-        }
-      
+        curr_values = mapData.map(d => d.employment);
         let max_value = Math.max(...curr_values);
 
         setColorScale(max_value);

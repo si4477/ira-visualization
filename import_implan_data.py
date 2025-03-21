@@ -40,6 +40,10 @@ data = data.groupby(["program",
                      "industry_desc"]).agg({'output':'sum',
                                             'employment':'sum'}).reset_index()
 
+# Round output and employment columns to 4 decimal places
+data['output'] = data['output'].round(4)
+data['employment'] = data['employment'].round(4)
+
 # Create a new set of rows with the output and employment columns
 # summed by region; for these rows, set the program, project,
 # industry code, and industry description to "All"
