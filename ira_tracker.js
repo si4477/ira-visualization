@@ -264,8 +264,8 @@ function addMapLegend(max_value) {
     
     // Add min and max labels
     labelsDiv.innerHTML = `
-      <span>0</span>
-      <span>${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+      <span>$0</span>
+      <span>$${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
     `;
     
     // Add elements to legend

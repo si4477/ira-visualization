@@ -259,6 +259,10 @@ div.industry_breakdown_table th {
   text-align: left;
 }
 
+div.industry_breakdown_table th.employment_column {
+  width: 150px;
+}
+
 div.industry_breakdown_table td {
   padding: 8px 12px;
   border-bottom: 1px solid rgba(0,0,0,0.05);
