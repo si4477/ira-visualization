@@ -186,8 +186,8 @@ function update_table() {
      industry description, industry code, output, and
      employment values */
   new_row.append("td").text(d => d.industry_desc);
-  new_row.append("td").text(d => d.output);
-  new_row.append("td").text(d => d.employment);
+  new_row.append("td").text(d => d.output.toLocaleString('en-US', { maximumFractionDigits: 0 }));
+  new_row.append("td").text(d => ((d.employment > 0 && d.employment < 1) ? "< 1" : d.employment));
 
 
 }
