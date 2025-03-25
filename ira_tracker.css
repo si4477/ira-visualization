@@ -68,6 +68,7 @@ div.svg_and_map {
     background: rgba(255,255,255,0.9);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border-radius: 8px;
+    color: #444;
 }
 
 .info div {
@@ -278,4 +279,19 @@ div.industry_breakdown_table tbody > tr:nth-of-type(even) {
 
 div.industry_breakdown_table tbody > tr:hover {
   background-color: #f0f7ff;
+}
+
+.tooltip {
+  padding: 6px 8px;
+  background: white;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.4;
+}
+
+.tooltip br {
+  margin-top: 4px;
 }

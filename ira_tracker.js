@@ -12,7 +12,7 @@ var map = L.map('leaflet_map', {
 
 // Call the render function passing the SVG ref,
 // the map object, and the useMap flag
-RenderChart(map);
+RenderChart();
 
 var show_output_or_employment = "output";
 
@@ -29,6 +29,7 @@ var selected_projects = [];
 
 // Set the current zoom to "United States"
 var current_geography = "United States";
+var current_geography_code = "US";
 
 var full_data;
 
@@ -98,7 +99,7 @@ function getProjectSelectedValues() {
     selected_projects.push(checkbox.value);
   });
   updateTableData();
-  update_table();
+  updateTable();
   updateMapData();
 
   let curr_values;
@@ -114,7 +115,7 @@ function getProjectSelectedValues() {
   addMapLegend(max_value);
 
   
-  geojson.setStyle(style);
+  geojson.setStyle(style_states);
 
   d3.select(".industry_breakdown_table div:nth-child(4)").text("For projects " + selected_projects);
   return selected_projects;
@@ -169,7 +170,7 @@ function updateTableData() {
   tableData = new_table_data;
 }
 
-function update_table() {
+function updateTable() {
 
   // Select the table body
   let table_selection = d3.select(".industry_breakdown_table tbody");
@@ -278,83 +279,194 @@ function addMapLegend(max_value) {
   legend.addTo(map);
 }
 
-function style(feature) {
+function style_states(feature) {
 
-  // Extract the data for this state
-  let state_data = mapData.filter(d => d.region === feature.properties.NAME);
+  if(current_geography == "United States" || current_geography != feature.properties.NAME) {
 
-  let state_total = 0;
-  if (state_data.length > 0) {
-    state_total = state_data[0][show_output_or_employment];
+    // Extract the data for this state
+    let state_data = mapData.filter(d => d.region === feature.properties.NAME);
+
+    let state_total = 0;
+    if (state_data.length > 0) {
+      state_total = state_data[0][show_output_or_employment];
+    }
+
+    return {
+        fillColor: color(state_total),
+        weight: 1,
+        opacity: 1,
+        color: '#aaa',
+        fillOpacity: 0.7
+    };
+
   }
+  else {
 
-  return {
-      fillColor: color(state_total),
+    return {
+      fillColor: 'rgba(0,0,0,0)',
+      weight: 0,
+      opacity: 0,
+      color: 'rgba(0,0,0,0)',
+      fillOpacity: 0
+    };
+
+  }
+}
+
+function style_districts(feature) {
+
+  if(current_geography == "United States" || current_geography_code != feature.properties.STATE) {
+
+    return {
+        fillColor: 'rgba(0,0,0,0)',
+        weight: 1,
+        opacity: 0,
+        color: '#aaa',
+        fillOpacity: 0
+    };
+
+  }
+  else {
+
+    return {
+      fillColor: "#0000aa",
       weight: 1,
       opacity: 1,
       color: '#aaa',
       fillOpacity: 0.7
-  };
+    };
+
+  }
+
 }
 
-function RenderChart(map) {
 
+function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
+  // Load background tiles from OpenStreetMap
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
 
+  // Create tooltip control
+  var tooltip = L.control({position: 'topright'});
+  var tooltipDiv;
+  tooltip.onAdd = function (map) {
+    tooltipDiv = L.DomUtil.create('div', 'info tooltip');
+    tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
+    return tooltipDiv;
+  };
+  tooltip.addTo(map);
 
-  function highlightFeature(e) {
-    var layer = e.target;
+  geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
+    style: style_districts,
+    attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
+  }).addTo(map);
 
-    layer.setStyle({
-        weight: 2,
-        color: '#555',
-        fillOpacity: 0.8
-    });
+  geojson = L.geoJson(statesOutlines, {
+    style: style_states,
+    attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
+  }).addTo(map);
 
-    layer.bringToFront();
-  }
+  map.on('click', function(e) {
 
-  function resetHighlight(e) {
-    geojson.resetStyle(e.target);
-  }
+    // Find state polygons containing the point
+    const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
+    
+    // Find district polygons containing the point
+    const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
-  function zoomToFeature(e) {
-    var layer = e.target;
-    var geography_name = layer.feature.properties.NAME;
+    // Log the results
+    //console.log('States at point:', statesAtPoint.map(polygon => polygon.feature.properties.NAME));
+    //console.log('Districts at point:', districtsAtPoint.map(polygon => (polygon.feature.properties.STATE + " " + polygon.feature.properties.CD)));
+
+    // Extract the name of the state that was clicked
+    let geography_name = statesAtPoint[0].feature.properties.NAME;
+
+    // Extract the code of the state that was clicked
+    let geography_code = statesAtPoint[0].feature.properties.STATE;
 
     if(geography_name === current_geography) {
       current_geography = "United States";
+      current_geography_code = "US";
       map.setView([37.8, -96], 3);
       info.update();
       updateTableData();
-      update_table();
+      updateTable();
       d3.select(".industry_breakdown_table div:nth-child(2)").text("For the United States");
+      geojson.setStyle(style_states);
+      geojson_districts.setStyle(style_districts);
     }
     else {
       current_geography = geography_name;
-      map.fitBounds(e.target.getBounds());
+      current_geography_code = geography_code;
+      map.fitBounds(statesAtPoint[0].getBounds());
       info.update(geography_name);
       updateTableData();
-      update_table();
+      updateTable();
       d3.select(".industry_breakdown_table div:nth-child(2)").text("For " + geography_name);
+      geojson.setStyle(style_states);
+      geojson_districts.setStyle(style_districts);
     }
 
-  }
+  });
 
-  function onEachFeature(feature, layer) {
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: zoomToFeature
-    });
-  }
+  map.on('mousemove', function(e) {
+    // Find state polygons containing the point
+    const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
+    
+    // Find district polygons containing the point
+    const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
-  
+    if (statesAtPoint.length > 0) {
+      const stateName = statesAtPoint[0].feature.properties.NAME;
+      let tooltipText = stateName;
+      
+      if (districtsAtPoint.length > 0) {
+        const districtState = districtsAtPoint[0].feature.properties.STATE;
+        const districtNumber = districtsAtPoint[0].feature.properties.CD;
+        tooltipText += `<br>Congressional District ${districtNumber}`;
+      }
+      
+      tooltipDiv.innerHTML = '<div>Impact Details</div>' + tooltipText;
+    } else {
+      tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
+    }
+  });
+
   var info;
 
+  // Create the control
+  info = L.control({position: 'topleft'});
+
+  // Set function to create label
+  info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this.update();
+    return this._div;
+  };
+
+  // Set function to use in updating label
+  info.update = function (props) {
+      this._div.innerHTML = '<div>State Focus</div>' +  (props ?
+          '<b>' + props + '</b>' : '[Click on a state]');
+  };
+
+  // Add control to map
+  info.addTo(map);
+
+}
+
+
+function RenderChart() {
+
+  // Load the economic impact data
   d3.csv("./economic_impact_data.csv").then(function(loaded_data) {
       
+      // Store the full dataset
       full_data = loaded_data;
 
+      // Update the map data
       updateMapData();
 
       let curr_values;
@@ -441,7 +553,7 @@ function RenderChart(map) {
         setColorScale(max_value);
         d3.select(".legend").remove();
         addMapLegend(max_value);
-        geojson.setStyle(style);
+        geojson.setStyle(style_states);
         
       });
 
@@ -457,58 +569,24 @@ function RenderChart(map) {
         setColorScale(max_value);
         d3.select(".legend").remove();
         addMapLegend(max_value);
-        geojson.setStyle(style);
+        geojson.setStyle(style_states);
       });
 
       updateTableData();
-      update_table();
+      updateTable();
   });
 
+  // Load the state outlines
+  d3.json("./states_outlines.json").then(function(statesOutlines) {
 
-  d3.json("./states_outlines.json").then(function(loaded_data) {
-      draw_leaflet_map(loaded_data);
+      // Load the congressional district outlines
+      d3.json("./congressional_districts_outlines.json").then(function(congressionalDistrictsOutlines) {
+
+        // Draw the map
+        draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines);
+
+      });
+
   });
-
-
-
-
-  function draw_leaflet_map(statesOutlines) {
-    // Load background tiles from OpenStreetMap
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    geojson = L.geoJson(statesOutlines, {
-      style: style,
-      interactive: true,
-      onEachFeature: onEachFeature,
-      attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
-    }).addTo(map);
-
-    // Create the control
-    info = L.control();
-
-    // Set function to create label
-    info.onAdd = function (map) {
-      this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-      this.update();
-      return this._div;
-    };
-
-    // Set function to use in updating label
-    info.update = function (props) {
-        this._div.innerHTML = '<div>State Focus</div>' +  (props ?
-            '<b>' + props + '</b>' : '[Select a state]');
-    };
-
-    // Add control to map
-    info.addTo(map);
-
-
-  }
-
-
 
 }
-
