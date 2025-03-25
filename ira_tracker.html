@@ -22,7 +22,7 @@
         <div class="multiselect">
           <div class="selectBox" onclick="showProgramCheckboxes()">
             <select>
-              <option>Select Program(s)</option>
+              <option>Filter by Program(s)</option>
             </select>
             <div class="overSelect"></div>
           </div>
@@ -32,7 +32,7 @@
         <div class="multiselect">
           <div class="selectBox" onclick="showProjectCheckboxes()">
             <select>
-              <option>Select Project(s)</option>
+              <option>Filter by Project(s)</option>
             </select>
             <div class="overSelect"></div>
           </div>
@@ -43,7 +43,10 @@
       <div id="leaflet_map"></div>
     </div>
     <div class="industry_breakdown_table">
-      <div>Output and Employment Impacts by Industry</div>
+      <div>
+        <span>Output and Employment Impacts by Industry</span>
+        <span><button id="downloadCSV" class="download-button">Download Table Data</button></span>
+      </div>
       <div>For the United States</div>
       <div>For all programs</div>
       <div>For all projects</div>

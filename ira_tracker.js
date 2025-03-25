@@ -70,7 +70,7 @@ function getProgramSelectedValues() {
   });
 
   updateTableData();
-  update_table();
+  updateTable();
   updateMapData();
 
   let curr_values;
@@ -86,9 +86,14 @@ function getProgramSelectedValues() {
   addMapLegend(max_value);
 
   
-  geojson.setStyle(style);
+  geojson.setStyle(style_states);
 
-  d3.select(".industry_breakdown_table div:nth-child(3)").text("For programs " + selected_programs);
+  if (selected_programs.length > 0) {
+    d3.select(".industry_breakdown_table div:nth-child(3)").text("For selected programs: " + selected_programs);
+  }
+  else {
+    d3.select(".industry_breakdown_table div:nth-child(3)").text("For all programs");
+  }
   return selected_programs;
 }
 
@@ -117,7 +122,12 @@ function getProjectSelectedValues() {
   
   geojson.setStyle(style_states);
 
-  d3.select(".industry_breakdown_table div:nth-child(4)").text("For projects " + selected_projects);
+  if (selected_projects.length > 0) {
+    d3.select(".industry_breakdown_table div:nth-child(4)").text("For selected projects: " + selected_projects);
+  }
+  else {
+    d3.select(".industry_breakdown_table div:nth-child(4)").text("For all projects");
+  }
   return selected_projects;
 }
 
@@ -263,11 +273,20 @@ function addMapLegend(max_value) {
     var labelsDiv = document.createElement('div');
     labelsDiv.className = 'labels';
     
-    // Add min and max labels
-    labelsDiv.innerHTML = `
-      <span>$0</span>
-      <span>$${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
-    `;
+    /* Add min and max labels to the legend, including dollar
+       signs if output is selected */
+    if(show_output_or_employment == "output") {
+      labelsDiv.innerHTML = `
+        <span>$0</span>
+        <span>$${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+      `;
+    }
+    else {
+      labelsDiv.innerHTML = `
+        <span>0</span>
+        <span>${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+      `;
+    }
     
     // Add elements to legend
     div.appendChild(gradientDiv);
@@ -418,20 +437,43 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     // Find district polygons containing the point
     const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
-    if (statesAtPoint.length > 0) {
+    if (statesAtPoint.length > 0 && districtsAtPoint.length > 0) {
       const stateName = statesAtPoint[0].feature.properties.NAME;
-      let tooltipText = stateName;
+      let tooltipText = '<div>Impact Details</div>' + stateName;
       
-      if (districtsAtPoint.length > 0) {
+      //if () {
         const districtState = districtsAtPoint[0].feature.properties.STATE;
         const districtNumber = districtsAtPoint[0].feature.properties.CD;
-        tooltipText += `<br>Congressional District ${districtNumber}`;
-      }
+        //tooltipText += `<br>Congressional District ${districtNumber}`;
+      //}
       
-      tooltipDiv.innerHTML = '<div>Impact Details</div>' + tooltipText;
+      if(current_geography == "United States" || current_geography != stateName) {
+        // Extract the data for this state
+        let state_data = mapData.filter(d => d.region === stateName);
+
+        let state_total = 0;
+        if (state_data.length > 0) {
+          state_total = state_data[0][show_output_or_employment];
+        }
+
+        if(show_output_or_employment == "output") { 
+          tooltipText += `<br>Output: $${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+        }
+        else {
+          tooltipText += `<br>Employment: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
+        }
+        tooltipDiv.innerHTML = tooltipText;
+      }
+      else {
+        tooltipDiv.innerHTML = tooltipText + `<br>Congressional District ${districtNumber}`;
+      }
     } else {
       tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
     }
+  });
+
+  map.on('mouseout', function(e) {
+    tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
   });
 
   var info;
@@ -449,7 +491,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
   // Set function to use in updating label
   info.update = function (props) {
       this._div.innerHTML = '<div>State Focus</div>' +  (props ?
-          '<b>' + props + '</b>' : '[Click on a state]');
+          props : '[Click on a state]');
   };
 
   // Add control to map
@@ -497,8 +539,7 @@ function RenderChart() {
             .attr("class", "program_checkbox")
             .attr("type", "checkbox")
             .attr("id", (d,i) => i)
-            .attr("value", (d,i) => d)
-            .attr("checked", "");
+            .attr("value", (d,i) => d);
       let labels = checkboxes_group.selectAll("label")
         .data(program_names)
         .join("label")
@@ -527,8 +568,7 @@ function RenderChart() {
             .attr("class", "project_checkbox")
             .attr("type", "checkbox")
             .attr("id", (d,i) => "project" + i)
-            .attr("value", (d,i) => d)
-            .attr("checked", "");
+            .attr("value", (d,i) => d);
       joined_divs.append("label")
           .attr("for", (d,i) => "project" + i)
           .text((d,i) => d);
@@ -541,7 +581,7 @@ function RenderChart() {
       });
 
 
-      document.getElementById('radio_output').addEventListener('change', function() {
+    document.getElementById('radio_output').addEventListener('change', function() {
         show_output_or_employment = "output";
 
         updateMapData();
@@ -555,9 +595,9 @@ function RenderChart() {
         addMapLegend(max_value);
         geojson.setStyle(style_states);
         
-      });
+    });
 
-      document.getElementById('radio_employment').addEventListener('change', function() {
+    document.getElementById('radio_employment').addEventListener('change', function() {
         show_output_or_employment = "employment";
 
         updateMapData();
@@ -570,10 +610,35 @@ function RenderChart() {
         d3.select(".legend").remove();
         addMapLegend(max_value);
         geojson.setStyle(style_states);
-      });
+    });
 
-      updateTableData();
-      updateTable();
+    updateTableData();
+    updateTable();
+
+    // Add click handler for download button
+    document.getElementById('downloadCSV').onclick = function() {
+      // Create CSV content
+      const headers = ['Industry', 'Output', 'Employment'];
+      const csvContent = [
+        headers.join(','),
+        ...tableData.map(row => [
+          `"${row.industry_desc}"`,
+          row.output,
+          row.employment
+        ].join(','))
+      ].join('\n');
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `economic_impact_${current_geography.toLowerCase().replace(/\s+/g, '_')}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
   });
 
   // Load the state outlines

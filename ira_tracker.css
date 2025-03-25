@@ -218,10 +218,15 @@ div.industry_breakdown_table > div:not(:last-child) {
 }
 
 div.industry_breakdown_table > div:first-child {
+  width: 100%;
+  max-width: 800px;
   font-size: 20px;
   font-weight: 600;
   color: #444;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 div.industry_breakdown_table > div:nth-child(2),
@@ -292,6 +297,22 @@ div.industry_breakdown_table tbody > tr:hover {
   line-height: 1.4;
 }
 
-.tooltip br {
-  margin-top: 4px;
+.download-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin: 12px 0;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover {
+  background-color: #357abd;
+}
+
+.download-button:active {
+  background-color: #2d6da3;
 }
