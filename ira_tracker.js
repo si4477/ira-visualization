@@ -7,7 +7,9 @@ var map = L.map('leaflet_map', {
     boxZoom: false,
     doubleClickZoom: false,
     dragging: true,
-    scrollWheelZoom: false
+    scrollWheelZoom: false,
+    zoomSnap: 0.3,
+    attributionControl: false
   }).setView([37.8, -96], 3);
 
 // Call the render function passing the SVG ref,
@@ -314,7 +316,7 @@ function style_states(feature) {
         fillColor: color(state_total),
         weight: 1,
         opacity: 1,
-        color: '#aaa',
+        color: '#ddd',
         fillOpacity: 0.7
     };
 
@@ -338,9 +340,9 @@ function style_districts(feature) {
 
     return {
         fillColor: 'rgba(0,0,0,0)',
-        weight: 1,
+        weight: 0,
         opacity: 0,
-        color: '#aaa',
+        color: 'rgba(0,0,0,0)',
         fillOpacity: 0
     };
 
@@ -348,10 +350,10 @@ function style_districts(feature) {
   else {
 
     return {
-      fillColor: "#0000aa",
+      fillColor: color(0),
       weight: 1,
       opacity: 1,
-      color: '#aaa',
+      color: '#ddd',
       fillOpacity: 0.7
     };
 
@@ -362,10 +364,10 @@ function style_districts(feature) {
 
 function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
   // Load background tiles from OpenStreetMap
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  /*L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
+  }).addTo(map);*/
 
   // Create tooltip control
   var tooltip = L.control({position: 'topright'});
@@ -386,6 +388,8 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     style: style_states,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
+
+  map.setView([37.8, -96], 4);
 
   map.on('click', function(e) {
 
@@ -408,7 +412,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     if(geography_name === current_geography) {
       current_geography = "United States";
       current_geography_code = "US";
-      map.setView([37.8, -96], 3);
+      map.setView([37.8, -96], 4);
       info.update();
       updateTableData();
       updateTable();
