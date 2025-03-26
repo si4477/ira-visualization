@@ -39,6 +39,26 @@
           <div id="project_checkboxes">
           </div>
         </div>
+        <div class="multiselect">
+          <div class="selectBox" onclick="showStateCheckboxes()">
+            <select>
+              <option>Select a State</option>
+            </select>
+            <div class="overSelect"></div>
+          </div>
+          <div id="state_checkboxes">
+          </div>
+        </div>
+        <div class="multiselect">
+          <div class="selectBox" onclick="showDistrictCheckboxes()">
+            <select>
+              <option>Select a District</option>
+            </select>
+            <div class="overSelect"></div>
+          </div>
+          <div id="district_checkboxes">
+          </div>
+        </div>
       </div>
       <div id="leaflet_map"></div>
     </div>
@@ -47,9 +67,13 @@
         <span>Output and Employment Impacts by Industry</span>
         <span><button id="downloadCSV" class="download-button">Download Table Data</button></span>
       </div>
-      <div>For the United States</div>
-      <div>For all programs</div>
-      <div>For all projects</div>
+      <div>
+        <div>For the United States</div>
+        <div>For all programs</div>
+        <div>For all projects</div>
+      </div>
+      <div></div>
+      <div></div>
       <table>
         <thead>
           <tr>

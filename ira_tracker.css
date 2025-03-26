@@ -112,14 +112,6 @@ div.svg_and_map {
   padding: 0 4px;
 }
 
-@media (max-width:1300px) {
-  div.svg_and_map {
-    width: 90%;
-    justify-content: center;
-    gap: 30px;
-  }
-}
-
 .multiselect {
   width: 230px;
   margin-top: 20px;
@@ -160,7 +152,7 @@ div.svg_and_map {
   box-shadow: 0 0 0 2px rgba(74,144,226,0.3), 0 2px 4px rgba(0,0,0,0.1);
 }
 
-#program_checkboxes, #project_checkboxes {
+#program_checkboxes, #project_checkboxes, #state_checkboxes, #district_checkboxes {
   display: none;
   flex-direction: column;
   background-color: #fff;
@@ -172,11 +164,13 @@ div.svg_and_map {
 }
 
 #program_checkboxes input[type="checkbox"], 
-#project_checkboxes input[type="checkbox"] {
+#project_checkboxes input[type="checkbox"],
+#state_checkboxes input[type="checkbox"],
+#district_checkboxes input[type="checkbox"] {
   display: none;
 }
 
-#program_checkboxes label, #project_checkboxes label {
+#program_checkboxes label, #project_checkboxes label, #state_checkboxes label, #district_checkboxes label {
   display: block;
   padding: 8px 12px;
   cursor: pointer;
@@ -185,7 +179,7 @@ div.svg_and_map {
   color: #444;
 }
 
-#program_checkboxes label:hover, #project_checkboxes label:hover {
+#program_checkboxes label:hover, #project_checkboxes label:hover, #state_checkboxes label:hover, #district_checkboxes label:hover {
   background-color: #f0f7ff;
 }
 
@@ -197,7 +191,7 @@ div.svg_and_map {
   bottom: 0;
 }
 
-.program_checkbox:checked + label, .project_checkbox:checked + label {
+.program_checkbox:checked + label, .project_checkbox:checked + label, .state_checkbox:checked + label, .district_checkbox:checked + label {
   font-weight: 600;
   background-color: #e6f0fa;
   color: #4a90e2;
@@ -209,7 +203,7 @@ div.industry_breakdown_table {
 
 div.industry_breakdown_table > div:not(:last-child) {
   width: 80%;
-  max-width: 780px;
+  max-width: 1000px;
   margin: 0 auto;
   color: #444;
   padding: 4px 0;
@@ -217,7 +211,7 @@ div.industry_breakdown_table > div:not(:last-child) {
 
 div.industry_breakdown_table > div:first-child {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   font-size: 20px;
   font-weight: 600;
   color: #444;
@@ -227,24 +221,44 @@ div.industry_breakdown_table > div:first-child {
   justify-content: space-between;
 }
 
-div.industry_breakdown_table > div:nth-child(2),
-div.industry_breakdown_table > div:nth-child(3),
-div.industry_breakdown_table > div:nth-child(4) {
+div.industry_breakdown_table > div:nth-child(2) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+div.industry_breakdown_table > div:nth-child(2) > div {
   font-size: 14px;
   color: #666;
   background-color: #f5f5f5;
+  margin-right: 10px;
   padding: 8px 12px;
   border-radius: 6px;
   margin-bottom: 4px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
+div.industry_breakdown_table > div:nth-child(3),
+div.industry_breakdown_table > div:nth-child(4) {
+  font-size: 16px;
+  color: #666;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+div.industry_breakdown_table > div:nth-child(3) {
+  margin-top: 20px;
+}
+
 div.industry_breakdown_table table {
   display: block;
-  width: 80%;
+  width: 100%;
+  max-width: 1000px;
   max-height: 500px;
   overflow-y: auto;
-  max-width: 800px;
   margin: 20px auto;
   border: none;
   border-radius: 8px;
