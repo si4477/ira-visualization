@@ -13,11 +13,10 @@
   </head>
 
   <body>
-    <div class="svg_and_map">
       <div id="map_controls">
         <div class="measure_controls">
-          <label for="radio_output"><input type="radio" id="radio_output" value="Output" name="economic_measure" checked/>Output</label>
-          <label for="radio_employment"><input type="radio" id="radio_employment" value="Employment" name="economic_measure"/>Employment</label>
+          <label for="radio_employment"><input type="radio" id="radio_employment" value="Employment" name="economic_measure" checked/>Employment</label>
+          <label for="radio_output"><input type="radio" id="radio_output" value="Output" name="economic_measure"/>Output</label>
         </div>
         <div class="multiselect">
           <div class="selectBox" onclick="showProgramCheckboxes()">
@@ -60,8 +59,7 @@
           </div>
         </div>
       </div>
-      <div id="leaflet_map"></div>
-    </div>
+    <div id="leaflet_map"></div>
     <div class="industry_breakdown_table">
       <div>
         <span>Output and Employment Impacts by Industry</span>
@@ -78,8 +76,8 @@
         <thead>
           <tr>
             <th scope="col">Industry</th>
-            <th scope="col" class="output_column">Output ($)</th>
             <th scope="col" class="employment_column">Employment (jobs)</th>
+            <th scope="col" class="output_column">Output ($)</th>
           </tr>
         </thead>
         <tbody></tbody>
