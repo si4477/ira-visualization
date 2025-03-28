@@ -18,9 +18,16 @@ data.rename(columns={"DestinationRegion": "region",
 data[["program",
       "project"]] = data["program_project"].str.split('_', n=1, expand=True)
 
-# Extract the state name from region column
+# Extract the state name from region column; do this by first taking
+# the substring of the region column after the open parenthesis; if
+# the first word of this substring is New, North, Rhode, South, or
+# West, set the state name to be the first two words of the substring
+# separated by a space; otherwise, set the state name to be the first
+# word of the substring only
 data['state'] = data['region'].str.extract(r'\((.+)\s')
-data['state'] = data['state'].str.split().str[0]
+values_to_match = ['New', 'North', 'Rhode', 'South', 'West']
+data.loc[data['state'].str.split().str[0].isin(values_to_match), 'state'] = data['state'].str.split().str[0] + ' ' + data['state'].str.split().str[1]
+data.loc[~data['state'].str.split().str[0].isin(values_to_match), 'state'] = data['state'].str.split().str[0]
 
 # Extract the congressional district number from the region column
 data['district'] = data['region'].str.extract(r'-(.*)\s')
