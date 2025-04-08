@@ -11,7 +11,7 @@
 }
 
 .measure_controls {
-  width: 130px;
+  width: 120px;
   height: 50px;
   padding: 15px;
   background-color: #f5f5f5;
@@ -111,7 +111,15 @@
 
 .multiselect {
   margin-top: 43px;
-  width: 180px;
+  width: 170px;
+}
+
+.multiselect:nth-child(4) {
+  width: 150px;
+}
+
+.multiselect:nth-child(5) {
+  width: 160px;
 }
 
 .selectBox {
@@ -181,7 +189,10 @@
   color: #444;
 }
 
-#program_checkboxes label:hover, #project_checkboxes label:hover, #state_checkboxes label:hover, #district_checkboxes label:hover {
+#program_checkboxes label:hover,
+#project_checkboxes label:hover,
+#state_checkboxes label:hover,
+#district_checkboxes label:hover {
   background-color: #f0f7ff;
 }
 
@@ -193,10 +204,34 @@
   bottom: 0;
 }
 
-.program_checkbox:checked + label, .project_checkbox:checked + label, .state_checkbox:checked + label, .district_checkbox:checked + label {
+.program_checkbox:checked + label,
+.project_checkbox:checked + label,
+.state_checkbox:checked + label,
+.district_checkbox:checked + label {
   font-weight: 600;
   background-color: #e6f0fa;
   color: #4a90e2;
+}
+
+#clear_button {
+  width: 90px;
+  margin-top: 43px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 10px;
+  font: 14px Arial, Helvetica, sans-serif;
+  color: #444;
+  text-align: center;
+  cursor: pointer;
+}
+
+#clear_button:hover {
+  background-color: #e0e0e0;
+}
+
+#clear_button:active {
+  background-color: #d0d0d0;
 }
 
 div.industry_breakdown_table {
@@ -281,12 +316,14 @@ div.industry_breakdown_table th {
   text-align: left;
 }
 
-div.industry_breakdown_table th.output_column {
-  width: 100px;
+div.industry_breakdown_table th.employment_column {
+  width: 170px;
+  cursor: pointer;
 }
 
-div.industry_breakdown_table th.employment_column {
-  width: 150px;
+div.industry_breakdown_table th.output_column {
+  width: 120px;
+  cursor: pointer;
 }
 
 div.industry_breakdown_table td {
@@ -300,6 +337,33 @@ div.industry_breakdown_table tbody > tr:nth-of-type(even) {
 
 div.industry_breakdown_table tbody > tr:hover {
   background-color: #f0f7ff;
+}
+
+.employment_column:hover,
+.output_column:hover {
+  background-color: #f8f8f8;
+}
+
+.descending::after {
+  content: "▼";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #444;
+  pointer-events: none;
+  font-size: 12px;
+}
+
+.ascending::after {
+  content: "▲";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #444;
+  pointer-events: none;
+  font-size: 12px;
 }
 
 .tooltip {

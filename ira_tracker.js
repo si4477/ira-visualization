@@ -49,8 +49,43 @@ var color;
 
 var geojson;
 
+function hideProgramCheckboxes() {
+  let checkboxes = document.getElementById("program_checkboxes");
+  checkboxes.style.display = "none";
+  program_expanded = false;
+}
+
+function hideProjectCheckboxes() {
+  let checkboxes = document.getElementById("project_checkboxes");
+  checkboxes.style.display = "none";
+  project_expanded = false;
+}
+
+function hideStateCheckboxes() {
+  let checkboxes = document.getElementById("state_checkboxes");
+  checkboxes.style.display = "none";
+  state_expanded = false;
+}
+
+function hideDistrictCheckboxes() {
+  let checkboxes = document.getElementById("district_checkboxes");
+  checkboxes.style.display = "none";
+  district_expanded = false;
+}
+
+function hideAllCheckboxes() {
+  hideProgramCheckboxes();
+  hideProjectCheckboxes();
+  hideStateCheckboxes();
+  hideDistrictCheckboxes();
+}
+
 // Toggle the program checkboxes visibility
 function showProgramCheckboxes() {
+  hideProjectCheckboxes();
+  hideStateCheckboxes();
+  hideDistrictCheckboxes();
+
   var checkboxes = document.getElementById("program_checkboxes");
   if (!program_expanded) {
     checkboxes.style.display = "flex";
@@ -63,6 +98,10 @@ function showProgramCheckboxes() {
 
 // Toggle the project checkboxes visibility
 function showProjectCheckboxes() {
+  hideProgramCheckboxes();
+  hideStateCheckboxes();
+  hideDistrictCheckboxes();
+
   var checkboxes = document.getElementById("project_checkboxes");
   if (!project_expanded) {
     checkboxes.style.display = "flex";
@@ -74,6 +113,10 @@ function showProjectCheckboxes() {
 }
 
 function showStateCheckboxes() {
+  hideProgramCheckboxes();
+  hideProjectCheckboxes();
+  hideDistrictCheckboxes();
+
   var checkboxes = document.getElementById("state_checkboxes");
   if (!state_expanded) {
     checkboxes.style.display = "flex";
@@ -85,6 +128,10 @@ function showStateCheckboxes() {
 }
 
 function showDistrictCheckboxes() {
+  hideProgramCheckboxes();
+  hideProjectCheckboxes();
+  hideStateCheckboxes();
+
   var checkboxes = document.getElementById("district_checkboxes");
   if (!district_expanded) {
     checkboxes.style.display = "flex";
@@ -222,6 +269,8 @@ function updateDistrictSelectedValues() {
 
 
 let tableData;
+let tableSortVariable = "employment";
+let tableSortDirection = "descending";
 function updateTableData() {
   let filtered_data;
   if(current_zoom_level === "national") {
@@ -780,13 +829,14 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
   let zoom_national_button = L.control({position: 'bottomleft'});
   zoom_national_button.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'national_button_div');
-    div.innerHTML = '<button id="zoom_national">Zoom Out to National</button>';
+    div.innerHTML = '<div id="zoom_national">Zoom Out to National</div>';
     return div;
   };
   zoom_national_button.addTo(map);
 
   document.getElementById('zoom_national').onclick = function(e) {
     L.DomEvent.stopPropagation(e);
+    hideAllCheckboxes();
     zoomToNational();
   }
 }
@@ -1069,13 +1119,13 @@ function drawVisualization() {
     // Add click handler for download button
     document.getElementById('downloadCSV').onclick = function() {
       // Create CSV content
-      const headers = ['Industry', 'Output', 'Employment'];
+      const headers = ['Industry', 'Employment', 'Output'];
       const csvContent = [
         headers.join(','),
         ...tableData.map(row => [
           `"${row.industry_desc}"`,
-          row.output,
-          row.employment
+          row.employment,
+          row.output
         ].join(','))
       ].join('\n');
 
@@ -1091,6 +1141,77 @@ function drawVisualization() {
       link.click();
       document.body.removeChild(link);
     };
+
+    // Add click handler for the clear filters button
+    document.getElementById('clear_button').onclick = function() {
+      hideAllCheckboxes();
+
+      selected_programs = [];
+      selected_projects = [];
+
+      d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(2)").text("For all programs");
+      d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(3)").text("For all projects");
+
+      zoomToNational();
+
+      updateProgramCheckboxes();
+      updateProjectCheckboxes();
+      updateStateCheckboxes();
+      updateDistrictCheckboxes();
+    }
+
+    // Add a click handler for the employment header in the table
+    document.getElementById('employment_header').onclick = function() {
+      document.getElementById('output_header').classList.remove("ascending");
+      document.getElementById('output_header').classList.remove("descending");
+
+      if(tableSortVariable === "employment" && tableSortDirection === "descending") {
+        // Sort the table data by employment in ascending order
+        tableData.sort((a, b) => (a.employment - b.employment === 0 ? a.output - b.output : a.employment - b.employment));
+        tableSortDirection = "ascending";
+        document.getElementById('employment_header').classList.remove("descending");
+        d3.select("#employment_header").classed("ascending", "true");
+      }
+      else {
+        tableData.sort((a, b) => (b.employment - a.employment === 0 ? b.output - a.output : b.employment - a.employment));
+        tableSortDirection = "descending";
+        document.getElementById('employment_header').classList.remove("ascending");
+        d3.select("#employment_header").classed("descending", "true");
+      }
+      tableSortVariable = "employment";
+      updateTable();
+    }
+
+    // Add a click handler for the output header in the table
+    document.getElementById('output_header').onclick = function() {
+      document.getElementById('employment_header').classList.remove("ascending");
+      document.getElementById('employment_header').classList.remove("descending");
+
+      if(tableSortVariable === "output" && tableSortDirection === "descending") {
+        // Sort the table data by output in ascending order
+        tableData.sort((a, b) => (a.output - b.output === 0 ? a.employment - b.employment : a.output - b.output));
+        tableSortDirection = "ascending";
+        document.getElementById('output_header').classList.remove("descending");
+        d3.select("#output_header").classed("ascending", "true");
+      }
+      else {
+        tableData.sort((a, b) => (b.output - a.output === 0 ? b.employment - a.employment : b.output - a.output));
+        tableSortDirection = "descending";
+        document.getElementById('output_header').classList.remove("ascending");
+        d3.select("#output_header").classed("descending", "true");
+      }
+      tableSortVariable = "output";
+      updateTable();
+    }
+
+    document.body.addEventListener('click', function(e) {
+      if (!(e.target.classList.contains('overSelect') ||
+            e.target.nodeName === "LABEL" ||
+            e.target.classList.contains('program_checkbox') ||
+            e.target.classList.contains('project_checkbox'))) {
+        hideAllCheckboxes();
+      }
+  });
 
   });
 
