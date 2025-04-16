@@ -318,8 +318,23 @@ function updateTableData() {
                          "employment": Number(employment_total.toFixed(4))});
   }
   
-  // Sort the table data by output in descending order
-  new_table_data.sort((a, b) => b.employment - a.employment);
+  // Sort the table data based on the current table sort
+  if(tableSortVariable === "employment") {
+    if(tableSortDirection === "descending") {
+      new_table_data.sort((a, b) => b.employment - a.employment);
+    }
+    else {
+      new_table_data.sort((a, b) => a.employment - b.employment);
+    }
+  }
+  else {
+    if(tableSortDirection === "descending") {
+      new_table_data.sort((a, b) => b.output - a.output);
+    }
+    else {
+      new_table_data.sort((a, b) => a.output - b.output);
+    }
+  }
 
   // Update the table data
   tableData = new_table_data;
@@ -357,10 +372,10 @@ function updateTable() {
 
 function setColorScale(max_value) {
   if (show_output_or_employment == "output") {  
-    color = d3.scaleSequential([0, max_value], d3.interpolateOranges);
+    color = d3.scaleSequential([0, max_value], ["#ffe1bd", "#faa635"]);
   }
   else {
-    color = d3.scaleSequential([0, max_value], d3.interpolateBlues);
+    color = d3.scaleSequential([0, max_value], ["#b1b3d4", "#1d468d"]);
   }
 }
 
@@ -1211,12 +1226,10 @@ function drawVisualization() {
             e.target.classList.contains('project_checkbox'))) {
         hideAllCheckboxes();
       }
-  });
+    });
 
-  });
-
-  // Load the state outlines
-  d3.json("./states_outlines.json").then(function(statesOutlines) {
+    // Load the state outlines
+    d3.json("./states_outlines.json").then(function(statesOutlines) {
 
       // Load the congressional district outlines
       d3.json("./congressional_districts_outlines.json").then(function(congressionalDistrictsOutlines) {
@@ -1225,6 +1238,8 @@ function drawVisualization() {
         draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines);
 
       });
+
+    });
 
   });
 

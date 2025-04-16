@@ -59,16 +59,15 @@
 .info {
     padding: 6px 8px;
     font: 14px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255,255,255,0.9);
+    background-color: #a5a1a0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border-radius: 8px;
-    color: #444;
+    color: white;
 }
 
 .info div {
     margin: 0 0 5px;
-    color: #444;
+    color: #fafafa;
     font-size: 14px;
     text-align: center;
     font-weight: bold;
@@ -78,8 +77,8 @@
   line-height: 18px;
   color: #555;
   padding: 6px 8px;
-  background: white;
-  background: rgba(255,255,255,0.9);
+  background-color: #fcfcfc;
+  /*background: rgba(255,255,255,0.9);*/
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border-radius: 8px;
   min-width: 150px;
@@ -216,22 +215,22 @@
 #clear_button {
   width: 90px;
   margin-top: 43px;
-  background-color: #f5f5f5;
+  background-color: #1176b2;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   padding: 10px;
   font: 14px Arial, Helvetica, sans-serif;
-  color: #444;
+  color: white;
   text-align: center;
   cursor: pointer;
 }
 
 #clear_button:hover {
-  background-color: #e0e0e0;
+  background-color: #5b8fc3;
 }
 
 #clear_button:active {
-  background-color: #d0d0d0;
+  background-color: #5b8fc3;
 }
 
 div.industry_breakdown_table {
@@ -249,7 +248,7 @@ div.industry_breakdown_table > div:not(:last-child) {
 div.industry_breakdown_table > div:first-child {
   width: 100%;
   max-width: 1000px;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   color: #444;
   margin-bottom: 10px;
@@ -269,8 +268,9 @@ div.industry_breakdown_table > div:nth-child(2) {
 
 div.industry_breakdown_table > div:nth-child(2) > div {
   font-size: 14px;
-  color: #666;
-  background-color: #f5f5f5;
+  color: #fafafa;
+  background-color: #94b799;
+  font-weight: 600;
   margin-right: 10px;
   padding: 8px 12px;
   border-radius: 6px;
@@ -300,7 +300,6 @@ div.industry_breakdown_table table {
   overflow-y: auto;
   margin: 20px auto;
   border: none;
-  border-radius: 8px;
   background-color: #f5f5f5;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -309,10 +308,9 @@ div.industry_breakdown_table th {
   position: sticky;
   top: 0px;
   padding: 12px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
+  background-color: #a5a1a0;
   font-weight: 600;
-  color: #444;
+  color: #fafafa;
   text-align: left;
 }
 
@@ -328,7 +326,6 @@ div.industry_breakdown_table th.output_column {
 
 div.industry_breakdown_table td {
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 div.industry_breakdown_table tbody > tr:nth-of-type(even) {
@@ -336,12 +333,12 @@ div.industry_breakdown_table tbody > tr:nth-of-type(even) {
 }
 
 div.industry_breakdown_table tbody > tr:hover {
-  background-color: #f0f7ff;
+  background-color: #dadada;
 }
 
 .employment_column:hover,
 .output_column:hover {
-  background-color: #f8f8f8;
+  background-color: #bed4c1;
 }
 
 .descending::after {
@@ -350,7 +347,7 @@ div.industry_breakdown_table tbody > tr:hover {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #444;
+  color: #fafafa;
   pointer-events: none;
   font-size: 12px;
 }
@@ -361,24 +358,24 @@ div.industry_breakdown_table tbody > tr:hover {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #444;
+  color: #fafafa;
   pointer-events: none;
   font-size: 12px;
 }
 
 .tooltip {
   padding: 6px 8px;
-  background: white;
-  background: rgba(255,255,255,0.9);
+  background-color: #a5a1a0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border-radius: 8px;
   font-size: 14px;
-  color: #444;
+  color: #fafafa;
   line-height: 1.4;
 }
 
 .download-button {
-  background-color: #4a90e2;
+  background-color: #1176b2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -390,21 +387,22 @@ div.industry_breakdown_table tbody > tr:hover {
 }
 
 .download-button:hover {
-  background-color: #357abd;
+  background-color: #5b8fc3;
 }
 
 .download-button:active {
-  background-color: #2d6da3;
+  background-color: #5b8fc3;
 }
 
 .national_button_div {
-  background-color: #f5f5f5;
+  background-color: #1176b2;
   border-radius: 6px;
 }
 
 #zoom_national {
-  background-color: #f5f5f5;
-  color: #444;
+  background-color: #1176b2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 8px 16px;
@@ -414,9 +412,9 @@ div.industry_breakdown_table tbody > tr:hover {
 }
 
 #zoom_national:hover {
-  background-color: #e0e0e0;
+  background-color: #5b8fc3;
 }
 
 #zoom_national:active {
-  background-color: #d0d0d0;
+  background-color: #5b8fc3;
 }
