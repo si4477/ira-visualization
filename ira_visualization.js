@@ -49,6 +49,9 @@ var color;
 
 var geojson;
 
+// Track whether the table has been filtered
+var table_is_filtered = false;
+
 function hideProgramCheckboxes() {
   let checkboxes = document.getElementById("program_checkboxes");
   checkboxes.style.display = "none";
@@ -364,8 +367,8 @@ function updateTable() {
   let output_total = tableData.reduce((acc, curr) => acc + curr.output, 0);
   let employment_total = tableData.reduce((acc, curr) => acc + curr.employment, 0);
 
-  d3.select(".industry_breakdown_table >div:nth-child(3)").text("Total Employment Impacts: " + employment_total.toLocaleString('en-US', { maximumFractionDigits: 0 }) + " jobs");
-  d3.select(".industry_breakdown_table > div:nth-child(4)").text("Total Output Impacts: $" + output_total.toLocaleString('en-US', { maximumFractionDigits: 0 }));
+  d3.select(".industry_breakdown_table >div:nth-child(4)").text("Total Employment Impacts: " + employment_total.toLocaleString('en-US', { maximumFractionDigits: 0 }) + " jobs");
+  d3.select(".industry_breakdown_table > div:nth-child(5)").text("Total Output Impacts: $" + output_total.toLocaleString('en-US', { maximumFractionDigits: 0 }));
 
 }
 
@@ -1150,7 +1153,7 @@ function drawVisualization() {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
       const geography_string = current_zoom_level === "district" ? current_state.toLowerCase().replace(/\s+/g, '_') + '-' + current_geography.toLowerCase().replace(/\s+/g, '_') : current_geography.toLowerCase().replace(/\s+/g, '_');
-      link.setAttribute('download', `economic_impact_${geography_string}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}.csv`);
+      link.setAttribute('download', `economic_impact_${geography_string}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}_${table_is_filtered ? "selectedindustries" : "allindustries"}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -1174,6 +1177,23 @@ function drawVisualization() {
       updateStateCheckboxes();
       updateDistrictCheckboxes();
     }
+
+    // Add click handler for filter table button
+    document.getElementById('filterTable').onclick = function() {
+      table_is_filtered = true;
+      let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
+      updateTableData();
+      tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
+      updateTable();
+    };
+
+    // Add click handler for clear table filter button
+    document.getElementById('clearTableFilter').onclick = function() {
+      table_is_filtered = false;
+      document.getElementById('table_filter_phrase').value = "";
+      updateTableData();
+      updateTable();
+    };
 
     // Add a click handler for the employment header in the table
     document.getElementById('employment_header').onclick = function() {

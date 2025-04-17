@@ -278,8 +278,8 @@ div.industry_breakdown_table > div:nth-child(2) > div {
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-div.industry_breakdown_table > div:nth-child(3),
-div.industry_breakdown_table > div:nth-child(4) {
+div.industry_breakdown_table > div:nth-child(4),
+div.industry_breakdown_table > div:nth-child(5) {
   font-size: 16px;
   color: #666;
   padding: 8px 0px;
@@ -288,8 +288,44 @@ div.industry_breakdown_table > div:nth-child(4) {
   font-weight: 600;
 }
 
-div.industry_breakdown_table > div:nth-child(3) {
+div.industry_breakdown_table > div:nth-child(3),
+div.industry_breakdown_table > div:nth-child(4) {
   margin-top: 20px;
+}
+
+div.industry_breakdown_table > div:nth-child(3) > label {
+  color: #fafafa;
+  font-size: 14px;
+  background-color: #94b799;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-right: 10px;
+}
+
+div.industry_breakdown_table > div:nth-child(3) > input {
+  height: 27px;
+  margin-right: 10px;
+  border: 1px solid #555;
+  border-radius: 5px;
+}
+
+div.industry_breakdown_table > div:nth-child(3) > button {
+  height: 31px;
+  padding: 8px;
+  background-color: #1176b2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+div.industry_breakdown_table > div:nth-child(3) > button:hover {
+  background-color: #5b8fc3;
+}
+
+div.industry_breakdown_table > div:nth-child(3) > button:active {
+  background-color: #5b8fc3;
 }
 
 div.industry_breakdown_table table {
@@ -312,6 +348,10 @@ div.industry_breakdown_table th {
   font-weight: 600;
   color: #fafafa;
   text-align: left;
+}
+
+div.industry_breakdown_table th:first-child {
+  width: 710px;
 }
 
 div.industry_breakdown_table th.employment_column {
@@ -338,7 +378,7 @@ div.industry_breakdown_table tbody > tr:hover {
 
 .employment_column:hover,
 .output_column:hover {
-  background-color: #bed4c1;
+  background-color: #dadada;
 }
 
 .descending::after {
