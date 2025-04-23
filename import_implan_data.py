@@ -7,15 +7,19 @@ idp_data = pd.read_csv('idp_implan_outputs.csv')
 # Import the IMPLAN DV modeling outputs
 dv_data = pd.read_csv('dv_implan_outputs.csv')
 
-# Create the dataset by concatenating the IDP and DV
+# Import the IMPLAN OCED modeling outputs (which contains data for
+# three different programs; see below)
+oced_data = pd.read_csv('oced_implan_outputs.csv')
+
+# Create the dataset by concatenating the IDP, DV, and OCED
 # modeling outputs together
-data = pd.concat([idp_data, dv_data], ignore_index = True)
+data = pd.concat([idp_data, dv_data, oced_data], ignore_index = True)
 
-# Delete the idp_data and dv_data variables because
+# Delete the idp_data, dv_data, and oced_data variables because
 # they are no longer needed
-del idp_data, dv_data
+del idp_data, dv_data, oced_data
 
-# Rename the region, event, industry code, industry description,
+# Rename the region, program/project, industry code, industry description,
 # output, and employment columns in-place
 data.rename(columns={"DestinationRegion": "region",
                      "ProjectName": "program_project",
@@ -32,9 +36,18 @@ data.rename(columns={"DestinationRegion": "region",
 data[["program",
       "project_truncated"]] = data["program_project"].str.split('_', n=1, expand=True)
 
+# For the OCED programs ('Long-DurationEnergy', 'CleanEnergy', and
+# 'CarbonManagement'), modify the "project_truncated" column to ignore
+# the leading text "Assembly_" and anything after (and including) the
+# next underscore character
+data.loc[data['program'].isin(['Long-DurationEnergy', 'CleanEnergy', 'CarbonManagement']), 'project_truncated'] = data['project_truncated'].str.extract(r'(Assembly_)([^_]+)(_)')[1]
+
 # Replace the program acronyms with the full program names
 data.loc[data['program'] == "IDP", 'program'] = "Industrial Demonstrations Program"
 data.loc[data['program'] == "dv", 'program'] = "Domestic Vehicles Grant Program"
+data.loc[data['program'] == "Long-DurationEnergy", 'program'] = "Long-Duration Energy Storage Demonstrations"
+data.loc[data['program'] == "CleanEnergy", 'program'] = "Clean Energy Demonstration on Current and Former Mine Land"
+data.loc[data['program'] == "CarbonManagement", 'program'] = "Carbon Management"
 
 # Import the IDP project names crosswalk
 idp_names = pd.read_csv('idp_project_names.csv')
@@ -50,16 +63,19 @@ names_data = pd.concat([idp_names, dv_names], ignore_index = True)
 # they are no longer needed
 del idp_names, dv_names
 
-# Merge the full project names into the dataset
-data = data.merge(names_data, left_on='project_truncated', right_on='truncated_name')
+# Merge the full project names into the dataset (projects that
+# do not have a match in the crosswalk data will have values
+# of NaN for the merged columns)
+data = data.merge(names_data, how='left', left_on='project_truncated', right_on='truncated_name')
 
 # Delete the full crosswalk because it is no longer needed
 del names_data
 
-# Rename the column with the full project names
-# to "project"
-data.rename(columns={"full_name": "project"},
-            inplace=True)
+# Create a "project" column that has the full name if one has been
+# merged and has the truncated name otherwise
+data['project'] = ""
+data.loc[~data['full_name'].isna(), 'project'] = data['full_name']
+data.loc[data['full_name'].isna(), 'project'] = data['project_truncated']
 
 # Extract the state name from region column; do this by first taking
 # the substring of the region column after the open parenthesis; if
@@ -78,6 +94,19 @@ del values_to_match
 # Extract the congressional district number from the region column
 data['district'] = data['region'].str.extract(r'-(.*)\s')
 data['district'] = data['district'].str.split().str[0]
+
+# For the seven states that have only one congressional district,
+# replace the district number "01" with "00" to match the
+# district-level geojson data
+one_district_states = ['Alaska',
+                       'Delaware',
+                       'Montana',
+                       'North Dakota',
+                       'South Dakota',
+                       'Vermont',
+                       'Wyoming']
+data.loc[data['state'].isin(one_district_states), 'district'] = "00"
+del one_district_states
 
 # Keep only the columns needed for the visualization
 data = data[["program",
