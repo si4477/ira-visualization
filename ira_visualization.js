@@ -53,26 +53,42 @@ var geojson;
 var table_is_filtered = false;
 
 function hideProgramCheckboxes() {
-  let checkboxes = document.getElementById("program_checkboxes");
-  checkboxes.style.display = "none";
+  document.getElementById("program_checkboxes_filter").style.display = "none";
+  document.getElementById("program_checkboxes_filter").value = "";
+  document.getElementById("program_checkboxes").style.display = "none";
+  document.querySelectorAll('#program_checkboxes label').forEach(function(label) { 
+    label.style.display = "block";
+  });
   program_expanded = false;
 }
 
 function hideProjectCheckboxes() {
-  let checkboxes = document.getElementById("project_checkboxes");
-  checkboxes.style.display = "none";
+  document.getElementById("project_checkboxes_filter").style.display = "none";
+  document.getElementById("project_checkboxes_filter").value = "";
+  document.getElementById("project_checkboxes").style.display = "none";
+  document.querySelectorAll('#project_checkboxes label').forEach(function(label) { 
+    label.style.display = "block";
+  });
   project_expanded = false;
 }
 
 function hideStateCheckboxes() {
-  let checkboxes = document.getElementById("state_checkboxes");
-  checkboxes.style.display = "none";
+  document.getElementById("state_checkboxes_filter").style.display = "none";
+  document.getElementById("state_checkboxes_filter").value = "";
+  document.getElementById("state_checkboxes").style.display = "none";
+  document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
+    label.style.display = "block";
+  });
   state_expanded = false;
 }
 
 function hideDistrictCheckboxes() {
-  let checkboxes = document.getElementById("district_checkboxes");
-  checkboxes.style.display = "none";
+  document.getElementById("district_checkboxes_filter").style.display = "none";
+  document.getElementById("district_checkboxes_filter").value = "";
+  document.getElementById("district_checkboxes").style.display = "none";
+  document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
+    label.style.display = "block";
+  });
   district_expanded = false;
 }
 
@@ -89,13 +105,19 @@ function showProgramCheckboxes() {
   hideStateCheckboxes();
   hideDistrictCheckboxes();
 
+  var checkboxes_filter = document.getElementById("program_checkboxes_filter");
   var checkboxes = document.getElementById("program_checkboxes");
   if (!program_expanded) {
+    checkboxes_filter.style.display = "block";
+    checkboxes_filter.focus();
     checkboxes.style.display = "flex";
     program_expanded = true;
   } else {
+    /*checkboxes_filter.style.display = "none";
+    checkboxes_filter.value = "";
     checkboxes.style.display = "none";
-    program_expanded = false;
+    program_expanded = false;*/
+    hideProgramCheckboxes();
   }
 }
 
@@ -105,13 +127,19 @@ function showProjectCheckboxes() {
   hideStateCheckboxes();
   hideDistrictCheckboxes();
 
+  var checkboxes_filter = document.getElementById("project_checkboxes_filter");
   var checkboxes = document.getElementById("project_checkboxes");
   if (!project_expanded) {
+    checkboxes_filter.style.display = "block";
+    checkboxes_filter.focus();
     checkboxes.style.display = "flex";
     project_expanded = true;
   } else {
+    /*checkboxes_filter.style.display = "none";
+    checkboxes_filter.value = "";
     checkboxes.style.display = "none";
-    project_expanded = false;
+    project_expanded = false;*/
+    hideProjectCheckboxes();
   }
 }
 
@@ -120,13 +148,19 @@ function showStateCheckboxes() {
   hideProjectCheckboxes();
   hideDistrictCheckboxes();
 
+  var checkboxes_filter = document.getElementById("state_checkboxes_filter");
   var checkboxes = document.getElementById("state_checkboxes");
   if (!state_expanded) {
+    checkboxes_filter.style.display = "block";
+    checkboxes_filter.focus();
     checkboxes.style.display = "flex";
     state_expanded = true;
   } else {
+    /*checkboxes_filter.style.display = "none";
+    checkboxes_filter.value = "";
     checkboxes.style.display = "none";
-    state_expanded = false;
+    state_expanded = false;*/
+    hideStateCheckboxes();
   }
 }
 
@@ -135,13 +169,19 @@ function showDistrictCheckboxes() {
   hideProjectCheckboxes();
   hideStateCheckboxes();
 
+  var checkboxes_filter = document.getElementById("district_checkboxes_filter");
   var checkboxes = document.getElementById("district_checkboxes");
   if (!district_expanded) {
+    checkboxes_filter.style.display = "block";
+    checkboxes_filter.focus();
     checkboxes.style.display = "flex";
     district_expanded = true;
   } else {
+    /*checkboxes_filter.style.display = "none";
+    checkboxes_filter.value = "";
     checkboxes.style.display = "none";
-    district_expanded = false;
+    district_expanded = false;*/
+    hideDistrictCheckboxes();
   }
 }
 
@@ -1131,6 +1171,34 @@ function drawVisualization() {
         geojson_districts.setStyle(style_districts);
     });
 
+    document.getElementById('program_checkboxes_filter').addEventListener('input', function() {
+      let search_text = this.value.toUpperCase();
+      document.querySelectorAll('#program_checkboxes label').forEach(function(label) { 
+        label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+      });
+    });
+
+    document.getElementById('project_checkboxes_filter').addEventListener('input', function() {
+      let search_text = this.value.toUpperCase();
+      document.querySelectorAll('#project_checkboxes label').forEach(function(label) { 
+        label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+      });
+    });
+
+    document.getElementById('state_checkboxes_filter').addEventListener('input', function() {
+      let search_text = this.value.toUpperCase();
+      document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
+        label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+      });
+    });
+
+    document.getElementById('district_checkboxes_filter').addEventListener('input', function() {
+      let search_text = this.value.toUpperCase();
+      document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
+        label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+      });
+    });
+
     updateTableData();
     updateTable();
 
@@ -1243,7 +1311,8 @@ function drawVisualization() {
       if (!(e.target.classList.contains('overSelect') ||
             e.target.nodeName === "LABEL" ||
             e.target.classList.contains('program_checkbox') ||
-            e.target.classList.contains('project_checkbox'))) {
+            e.target.classList.contains('project_checkbox') ||
+            e.target.classList.contains('filter_for_filter'))) {
         hideAllCheckboxes();
       }
     });
