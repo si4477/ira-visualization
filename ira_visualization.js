@@ -14,7 +14,7 @@ var map = L.map('leaflet_map', {
     scrollWheelZoom: false,
     zoomSnap: 0.3,
     attributionControl: false
-  }).setView([37.8, -96], 3);
+  }).setView([35.8, -96], 4.5);
 
 // Call the function to render the visualization
 drawVisualization();
@@ -113,10 +113,6 @@ function showProgramCheckboxes() {
     checkboxes.style.display = "flex";
     program_expanded = true;
   } else {
-    /*checkboxes_filter.style.display = "none";
-    checkboxes_filter.value = "";
-    checkboxes.style.display = "none";
-    program_expanded = false;*/
     hideProgramCheckboxes();
   }
 }
@@ -135,10 +131,6 @@ function showProjectCheckboxes() {
     checkboxes.style.display = "flex";
     project_expanded = true;
   } else {
-    /*checkboxes_filter.style.display = "none";
-    checkboxes_filter.value = "";
-    checkboxes.style.display = "none";
-    project_expanded = false;*/
     hideProjectCheckboxes();
   }
 }
@@ -156,10 +148,6 @@ function showStateCheckboxes() {
     checkboxes.style.display = "flex";
     state_expanded = true;
   } else {
-    /*checkboxes_filter.style.display = "none";
-    checkboxes_filter.value = "";
-    checkboxes.style.display = "none";
-    state_expanded = false;*/
     hideStateCheckboxes();
   }
 }
@@ -177,10 +165,6 @@ function showDistrictCheckboxes() {
     checkboxes.style.display = "flex";
     district_expanded = true;
   } else {
-    /*checkboxes_filter.style.display = "none";
-    checkboxes_filter.value = "";
-    checkboxes.style.display = "none";
-    district_expanded = false;*/
     hideDistrictCheckboxes();
   }
 }
@@ -500,7 +484,7 @@ function updateMapData() {
 function addMapLegend(max_value) {
   d3.select(".legend").remove();
 
-  var legend = L.control({position: 'bottomright'});
+  var legend = L.control({position: 'bottomleft'});
 
   legend.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info legend');
@@ -653,7 +637,7 @@ function zoomToNational() {
   updateStateCheckboxes();
   updateDistrictCheckboxes();
 
-  map.setView([37.8, -96], 4);
+  map.setView([35.8, -96], 4.5);
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
   
@@ -735,8 +719,22 @@ function zoomToDistrict(state_name, district_number) {
 var info;
 function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
 
+  let zoom_national_button = L.control({position: 'bottomright'});
+  zoom_national_button.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'national_button_div');
+    div.innerHTML = '<div id="zoom_national">Zoom Out to National</div>';
+    return div;
+  };
+  zoom_national_button.addTo(map);
+
+  document.getElementById('zoom_national').onclick = function(e) {
+    L.DomEvent.stopPropagation(e);
+    hideAllCheckboxes();
+    zoomToNational();
+  }
+
   // Create tooltip control
-  var tooltip = L.control({position: 'topright'});
+  var tooltip = L.control({position: 'bottomright'});
   var tooltipDiv;
   tooltip.onAdd = function (map) {
     tooltipDiv = L.DomUtil.create('div', 'info tooltip');
@@ -755,7 +753,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
-  map.setView([37.8, -96], 4);
+  map.setView([35.8, -96], 4.5);
 
   map.on('click', function(e) {
 
@@ -855,10 +853,8 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
   });
 
-  
-
   // Create the control
-  info = L.control({position: 'topleft'});
+  info = L.control({position: 'bottomright'});
 
   // Set function to create label
   info.onAdd = function (map) {
@@ -883,20 +879,6 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
 
   // Add control to map
   info.addTo(map);
-
-  let zoom_national_button = L.control({position: 'bottomleft'});
-  zoom_national_button.onAdd = function (map) {
-    var div = L.DomUtil.create('div', 'national_button_div');
-    div.innerHTML = '<div id="zoom_national">Zoom Out to National</div>';
-    return div;
-  };
-  zoom_national_button.addTo(map);
-
-  document.getElementById('zoom_national').onclick = function(e) {
-    L.DomEvent.stopPropagation(e);
-    hideAllCheckboxes();
-    zoomToNational();
-  }
 }
 
 function updateProgramCheckboxes() {
@@ -1112,7 +1094,7 @@ function drawVisualization() {
     let max_value = Math.max(...curr_values);
 
     setColorScale(max_value);
-    addMapLegend(max_value);
+    //addMapLegend(max_value);
 
     updateProgramCheckboxes();
     updateProjectCheckboxes();
@@ -1325,6 +1307,9 @@ function drawVisualization() {
 
         // Draw the map
         draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines);
+
+        // Draw the legend
+        addMapLegend(max_value);
 
       });
 
