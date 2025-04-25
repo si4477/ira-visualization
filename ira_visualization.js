@@ -12,9 +12,9 @@ var map = L.map('leaflet_map', {
     doubleClickZoom: false,
     dragging: false,
     scrollWheelZoom: false,
-    zoomSnap: 0.3,
+    zoomSnap: 0.1,
     attributionControl: false
-  }).setView([35.8, -96], 4.5);
+  }).setView([35.8, -96], 4.3);
 
 // Call the function to render the visualization
 drawVisualization();
@@ -541,7 +541,7 @@ function style_states(feature) {
         fillColor: state_total > 0 ? color(state_total) : "#fcfcfc",
         weight: 1,
         opacity: 1,
-        color: '#ddd',
+        color: '#eee',
         fillOpacity: 0.7
     };
 
@@ -585,7 +585,7 @@ function style_districts(feature) {
       fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : "#fcfcfc",
       weight: 1,
       opacity: 1,
-      color: '#ddd',
+      color: '#eee',
       fillOpacity: 0.7
     };
 
@@ -599,7 +599,7 @@ function style_districts(feature) {
         fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : "#fcfcfc",
         weight: 1,
         opacity: 1,
-        color: '#ddd',
+        color: '#eee',
         fillOpacity: 0.7
       };
     }
@@ -637,7 +637,7 @@ function zoomToNational() {
   updateStateCheckboxes();
   updateDistrictCheckboxes();
 
-  map.setView([35.8, -96], 4.5);
+  map.setView([35.8, -96], 4.3);
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
   
@@ -753,7 +753,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
-  map.setView([35.8, -96], 4.5);
+  map.setView([35.8, -96], 4.3);
 
   map.on('click', function(e) {
 
