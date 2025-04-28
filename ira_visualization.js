@@ -179,6 +179,7 @@ function updateProgramSelectedValues() {
   updateTableData();
   updateTable();
   updateMapData();
+  info.update();
 
   let max_value;
   if(current_zoom_level === "national") {
@@ -223,6 +224,7 @@ function updateProjectSelectedValues() {
   updateTableData();
   updateTable();
   updateMapData();
+  info.update();
 
   let max_value;
   if(current_zoom_level === "national") {
@@ -541,7 +543,7 @@ function style_states(feature) {
         fillColor: state_total > 0 ? color(state_total) : "#fcfcfc",
         weight: 1,
         opacity: 1,
-        color: '#eee',
+        color: '#dadada',
         fillOpacity: 0.7
     };
 
@@ -585,7 +587,7 @@ function style_districts(feature) {
       fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : "#fcfcfc",
       weight: 1,
       opacity: 1,
-      color: '#eee',
+      color: '#dadada',
       fillOpacity: 0.7
     };
 
@@ -599,7 +601,7 @@ function style_districts(feature) {
         fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : "#fcfcfc",
         weight: 1,
         opacity: 1,
-        color: '#eee',
+        color: '#dadada',
         fillOpacity: 0.7
       };
     }
@@ -623,10 +625,11 @@ function zoomToNational() {
   current_zoom_level = "national";
   current_state = "none";
 
-  info.update();
+  
   updateTableData();
   updateTable();
   updateMapData();
+  info.update();
   d3.select(".industry_breakdown_table div:nth-child(2) div:first-child").text("For the United States");
 
   let max_value = Math.max(...mapData.map(d => parseFloat(d[show_output_or_employment])));
@@ -733,15 +736,9 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     zoomToNational();
   }
 
-  // Create tooltip control
-  var tooltip = L.control({position: 'bottomright'});
-  var tooltipDiv;
-  tooltip.onAdd = function (map) {
-    tooltipDiv = L.DomUtil.create('div', 'info tooltip');
-    tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
-    return tooltipDiv;
-  };
-  tooltip.addTo(map);
+  var popup = L.popup({autoPan: false,
+                       keepInView: true,
+                       closeButton: false});
 
   geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
     style: style_districts,
@@ -787,16 +784,20 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     // Find district polygons containing the point
     const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
+    //
+    let popup_latlng;
+    let tooltipText;
+
     if (statesAtPoint.length > 0 && districtsAtPoint.length > 0) {
       const stateName = statesAtPoint[0].feature.properties.NAME;
-      let tooltipText;
+      
       
       const districtState = districtsAtPoint[0].feature.properties.STATE;
       const districtNumber = districtsAtPoint[0].feature.properties.CD;
       
       
       if(current_zoom_level === "national") {
-        tooltipText = '<div>Impact Details</div>' + stateName;
+        tooltipText = stateName;
         // Extract the data for this state
         let state_data = mapData.filter(d => d.state === stateName);
 
@@ -811,13 +812,15 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
         else {
           tooltipText += `<br>Employment: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
         }
-        tooltipDiv.innerHTML = tooltipText;
+        
+
+        popup_latlng = statesAtPoint[0].getBounds().getCenter();
       }
       else {
         if((current_zoom_level === "state" && stateName === current_state) ||
            (current_zoom_level === "district" && districtNumber === current_geography)) {
 
-          tooltipText = '<div>Impact Details</div>' + stateName + ' - District ' + districtNumber;
+          tooltipText = stateName + ' - District ' + districtNumber;
           let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
           if(show_output_or_employment === "output") {
             if(district_data.length > 0) {
@@ -837,20 +840,34 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
             }
           }
 
+          //popup_latlng = districtsAtPoint[0].getBounds().getCenter();
+          //popup_latlng = districtsAtPoint[0].getCenter();
+          popup_latlng = e.latlng;
         }
         else {
           tooltipText = '<div>Impact Details</div>[Hover over a location]';
         }
-        tooltipDiv.innerHTML = tooltipText;
+        
       }
     }
     else {
-      tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
+      tooltipText = "";
+    }
+
+    
+    if (tooltipText != "" && popup_latlng != undefined) {
+      popup
+        .setLatLng(popup_latlng)
+        .setContent(tooltipText)
+        .openOn(map);
+    }
+    else {
+      popup.close();
     }
   });
 
   map.on('mouseout', function(e) {
-    tooltipDiv.innerHTML = '<div>Impact Details</div>[Hover over a location]';
+    popup.close();
   });
 
   // Create the control
@@ -867,7 +884,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
   info.update = function (props, num_districts) {
       this._div.innerHTML = '<div>Geographic Focus</div>';
       if(current_zoom_level === "national") {
-        this._div.innerHTML += '[Click on a state]';
+        this._div.innerHTML += 'United States' + '<br>States Impacted: ' + mapData.length;
       }
       else if(current_zoom_level === "state") {
         this._div.innerHTML += props + '<br>Districts Impacted: ' + num_districts;
