@@ -625,6 +625,7 @@ function zoomToNational() {
   current_zoom_level = "national";
   current_state = "none";
 
+
   
   updateTableData();
   updateTable();
@@ -641,6 +642,13 @@ function zoomToNational() {
   updateDistrictCheckboxes();
 
   map.setView([35.8, -96], 4.3);
+
+  geojson.resetStyle();
+  geojson_districts.resetStyle();
+
+  geojson.bringToFront();
+  geojson_districts.bringToBack();
+
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
   
@@ -651,6 +659,7 @@ function zoomToState(state_name) {
   let layers = geojson.getLayers();
   let state_layer = layers.find(layer => layer.feature.properties.NAME === state_name);
   
+  geojson.bringToBack();
 
   current_geography = state_name;
   current_geography_code = state_layer.feature.properties.STATE;
@@ -680,10 +689,10 @@ function zoomToDistrict(state_name, district_number) {
   current_geography = district_number;
   current_zoom_level = "district";
 
-  
-
   let district_layer = geojson_districts.getLayers().find(layer => (layer.feature.properties.STATE === current_geography_code) && (layer.feature.properties.CD === district_number));
   
+  
+
   map.fitBounds(district_layer.getBounds());
   
   updateTableData();
@@ -740,13 +749,68 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
                        keepInView: true,
                        closeButton: false});
 
+
+  function highlightFeature(e) {
+    
+    if(current_zoom_level === "national") {
+      var layer = e.target;
+      layer.setStyle({
+          weight: 2,
+          color: '#666',
+          fillOpacity: 0.7
+      });
+
+      layer.bringToFront();
+    }
+
+  }
+
+  function resetHighlight(e) {
+      geojson.resetStyle(e.target);
+  }
+
+  function highlightDistrictFeature(e) {
+
+    if(current_zoom_level === "state") {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 2,
+        color: '#666',
+        fillOpacity: 0.7
+      });
+
+      layer.bringToFront();
+    }
+  }
+
+  function resetDistrictHighlight(e) {
+      geojson_districts.resetStyle(e.target);
+  }
+
+  function onEachFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight
+    });
+  }
+
+  function onEachDistrictFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightDistrictFeature,
+        mouseout: resetDistrictHighlight
+    });
+  }
+
   geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
     style: style_districts,
+    onEachFeature: onEachDistrictFeature,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
   geojson = L.geoJson(statesOutlines, {
     style: style_states,
+    onEachFeature: onEachFeature,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
@@ -786,7 +850,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
 
     //
     let popup_latlng;
-    let tooltipText;
+    let tooltipText = "";
 
     if (statesAtPoint.length > 0 && districtsAtPoint.length > 0) {
       const stateName = statesAtPoint[0].feature.properties.NAME;
@@ -797,7 +861,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
       
       
       if(current_zoom_level === "national") {
-        tooltipText = stateName;
+        tooltipText = `<b>${stateName}</b>`;
         // Extract the data for this state
         let state_data = mapData.filter(d => d.state === stateName);
 
@@ -813,14 +877,14 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
           tooltipText += `<br>Employment: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
         }
         
-
-        popup_latlng = statesAtPoint[0].getBounds().getCenter();
+        //popup_latlng = statesAtPoint[0].getBounds().getCenter();
+        popup_latlng = e.latlng;
       }
       else {
         if((current_zoom_level === "state" && stateName === current_state) ||
            (current_zoom_level === "district" && districtNumber === current_geography)) {
 
-          tooltipText = stateName + ' - District ' + districtNumber;
+          tooltipText = `<b>${stateName} - District ${districtNumber}</b>`;
           let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
           if(show_output_or_employment === "output") {
             if(district_data.length > 0) {
@@ -840,8 +904,6 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
             }
           }
 
-          //popup_latlng = districtsAtPoint[0].getBounds().getCenter();
-          //popup_latlng = districtsAtPoint[0].getCenter();
           popup_latlng = e.latlng;
         }
         else {
@@ -864,6 +926,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     else {
       popup.close();
     }
+
   });
 
   map.on('mouseout', function(e) {
