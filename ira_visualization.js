@@ -484,7 +484,10 @@ function updateMapData() {
 }
 
 function addMapLegend(max_value) {
+  
   d3.select(".legend").remove();
+
+  let some_impact = Number.isFinite(max_value) && max_value > 0;
 
   var legend = L.control({position: 'bottomleft'});
 
@@ -496,8 +499,8 @@ function addMapLegend(max_value) {
     gradientDiv.className = 'gradient';
     
     // Set the gradient colors as CSS variables
-    gradientDiv.style.setProperty('--start-color', color(0));
-    gradientDiv.style.setProperty('--end-color', color(max_value));
+    gradientDiv.style.setProperty('--start-color', some_impact ? color(0) : '#dadada');
+    gradientDiv.style.setProperty('--end-color', some_impact ? color(max_value) : '#dadada');
     
     // Create labels container
     var labelsDiv = document.createElement('div');
@@ -507,14 +510,14 @@ function addMapLegend(max_value) {
        signs if output is selected */
     if(show_output_or_employment == "output") {
       labelsDiv.innerHTML = `
-        <span>$0</span>
-        <span>$${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+        <span>${some_impact ? '$0' : '-'}</span>
+        <span>${some_impact ? '$' + max_value.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '-'}</span>
       `;
     }
     else {
       labelsDiv.innerHTML = `
-        <span>0</span>
-        <span>${max_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+        <span>${some_impact ? '0 jobs' : '-'}</span>
+        <span>${some_impact ? max_value.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' jobs' : '-'}</span>
       `;
     }
     
@@ -871,10 +874,10 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
         }
 
         if(show_output_or_employment == "output") { 
-          tooltipText += `<br>Output: $${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+          tooltipText += `<br>Output Impact: $${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
         }
         else {
-          tooltipText += `<br>Employment: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
+          tooltipText += `<br>Employment Impact: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
         }
         
         //popup_latlng = statesAtPoint[0].getBounds().getCenter();
@@ -888,19 +891,19 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
           let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
           if(show_output_or_employment === "output") {
             if(district_data.length > 0) {
-              tooltipText += `<br>Output: $${district_data[0].output.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+              tooltipText += `<br>Output Impact: $${district_data[0].output.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
             }
             else {  
-              tooltipText += `<br>Output: $0`;
+              tooltipText += `<br>Output Impact: $0`;
             }
           }
           else {
             if(district_data.length > 0) {
               let jobs_number = district_data[0].employment.toLocaleString('en-US', { maximumFractionDigits: 0 });
-              tooltipText += `<br>Employment: ${jobs_number} job${jobs_number === '1' ? '' : 's'}`;
+              tooltipText += `<br>Employment Impact: ${jobs_number} job${jobs_number === '1' ? '' : 's'}`;
             }
             else {
-              tooltipText += `<br>Employment: 0 jobs`;
+              tooltipText += `<br>Employment Impact: 0 jobs`;
             }
           }
 
