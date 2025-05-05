@@ -348,7 +348,15 @@ function updateTableData() {
   }
   
   // Sort the table data based on the current table sort
-  if(tableSortVariable === "employment") {
+  if(tableSortVariable === "industry") {
+    if(tableSortDirection === "descending") {
+      new_table_data.sort((a, b) => b.industry_desc.localeCompare(a.industry_desc));
+    }
+    else {
+      new_table_data.sort((a, b) => a.industry_desc.localeCompare(b.industry_desc));
+    }
+  }
+  else if(tableSortVariable === "employment") {
     if(tableSortDirection === "descending") {
       new_table_data.sort((a, b) => b.employment - a.employment);
     }
@@ -393,8 +401,8 @@ function updateTable() {
   let output_total = tableData.reduce((acc, curr) => acc + curr.output, 0);
   let employment_total = tableData.reduce((acc, curr) => acc + curr.employment, 0);
 
-  d3.select(".industry_breakdown_table >div:nth-child(4)").text("Total Employment Impacts: " + employment_total.toLocaleString('en-US', { maximumFractionDigits: 0 }) + " jobs");
-  d3.select(".industry_breakdown_table > div:nth-child(5)").text("Total Output Impacts: $" + output_total.toLocaleString('en-US', { maximumFractionDigits: 0 }));
+  d3.select("#total_employment_impacts").text("Total Employment Impacts: " + employment_total.toLocaleString('en-US', { maximumFractionDigits: 0 }) + " jobs");
+  d3.select("#total_output_impacts").text("Total Output Impacts: $" + output_total.toLocaleString('en-US', { maximumFractionDigits: 0 }));
 
 }
 
@@ -668,7 +676,7 @@ function zoomToState(state_name) {
   current_geography_code = state_layer.feature.properties.STATE;
   current_zoom_level = "state";
   current_state = state_name;
-  map.fitBounds(state_layer.getBounds());
+  map.fitBounds(state_layer.getBounds(), { padding: [20, 20] });
   
   updateTableData();
   updateTable();
@@ -696,7 +704,7 @@ function zoomToDistrict(state_name, district_number) {
   
   
 
-  map.fitBounds(district_layer.getBounds());
+  map.fitBounds(district_layer.getBounds(), { padding: [20, 20] });
   
   updateTableData();
   updateTable();
@@ -1311,6 +1319,17 @@ function drawVisualization() {
       updateDistrictCheckboxes();
     }
 
+    // Add handler for pressing enter within the filter text input
+    document.getElementById('table_filter_phrase').addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        table_is_filtered = true;
+        let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
+        updateTableData();
+        tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
+        updateTable();
+      }
+    });
+
     // Add click handler for filter table button
     document.getElementById('filterTable').onclick = function() {
       table_is_filtered = true;
@@ -1329,7 +1348,33 @@ function drawVisualization() {
     };
 
     // Add a click handler for the employment header in the table
+    document.getElementById('industry_header').onclick = function() {
+      document.getElementById('employment_header').classList.remove("ascending");
+      document.getElementById('employment_header').classList.remove("descending");
+      document.getElementById('output_header').classList.remove("ascending");
+      document.getElementById('output_header').classList.remove("descending");
+
+      if(tableSortVariable === "industry" && tableSortDirection === "ascending") {
+        // Sort the table data by industry in ascending order
+        tableData.sort((a, b) => (b.industry_desc.localeCompare(a.industry_desc) === 0 ? b.employment - a.employment : b.industry_desc.localeCompare(a.industry_desc)));
+        tableSortDirection = "descending";
+        document.getElementById('industry_header').classList.remove("ascending");
+        d3.select("#industry_header").classed("descending", "true");
+      }
+      else {
+        tableData.sort((a, b) => (a.industry_desc.localeCompare(b.industry_desc) === 0 ? a.employment - b.employment : a.industry_desc.localeCompare(b.industry_desc)));
+        tableSortDirection = "ascending";
+        document.getElementById('industry_header').classList.remove("descending");
+        d3.select("#industry_header").classed("ascending", "true");
+      }
+      tableSortVariable = "industry";
+      updateTable();
+    }
+
+    // Add a click handler for the employment header in the table
     document.getElementById('employment_header').onclick = function() {
+      document.getElementById('industry_header').classList.remove("ascending");
+      document.getElementById('industry_header').classList.remove("descending");
       document.getElementById('output_header').classList.remove("ascending");
       document.getElementById('output_header').classList.remove("descending");
 
@@ -1352,6 +1397,8 @@ function drawVisualization() {
 
     // Add a click handler for the output header in the table
     document.getElementById('output_header').onclick = function() {
+      document.getElementById('industry_header').classList.remove("ascending");
+      document.getElementById('industry_header').classList.remove("descending");
       document.getElementById('employment_header').classList.remove("ascending");
       document.getElementById('employment_header').classList.remove("descending");
 

@@ -19,7 +19,7 @@
       <div id="map_controls">
         <div class="measure_controls">
           <label for="radio_employment"><input type="radio" id="radio_employment" value="Employment" name="economic_measure" checked/>Employment</label>
-          <label for="radio_output"><input type="radio" id="radio_output" value="Output" name="economic_measure"/>Output</label>
+          <label for="radio_output"><input type="radio" id="radio_output" value="Output" name="economic_measure"/>Economic Output</label>
         </div>
         <div class="multiselect">
           <div class="selectBox" onclick="showProgramCheckboxes()">
@@ -71,7 +71,6 @@
     <div class="industry_breakdown_table">
       <div>
         <span>Output and Employment Impacts by Industry</span>
-        <span><button id="downloadCSV" class="download-button">Download Table Data</button></span>
       </div>
       <div>
         <div>For the United States</div>
@@ -83,12 +82,17 @@
         <button id="filterTable">Filter Table</button>
         <button id="clearTableFilter">Clear Filter</button>
       </div>
-      <div></div>
-      <div></div>
+      <div>
+        <div>
+          <div id="total_employment_impacts"></div>
+          <div id="total_output_impacts"></div>
+        </div>
+        <span><button id="downloadCSV" class="download-button">Download Table Data</button></span>
+      </div>
       <table>
         <thead>
           <tr>
-            <th scope="col">Industry</th>
+            <th scope="col" id="industry_header" class="industry_column">Industry</th>
             <th scope="col" id="employment_header" class="employment_column descending">Employment (jobs)</th>
             <th scope="col" id="output_header" class="output_column">Output ($)</th>
           </tr>

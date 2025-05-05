@@ -11,13 +11,26 @@ dv_data = pd.read_csv('dv_implan_outputs.csv')
 # three different programs; see below)
 oced_data = pd.read_csv('oced_implan_outputs.csv')
 
+# Import the IMPLAN REAP modeling outputs
+reap_data = pd.read_csv('reap_implan_outputs.csv')
+
+# Delete any rows in the REAP data that have "Wisconsin (2023)"
+# in the DestinationRegion column
+reap_data = reap_data[reap_data['DestinationRegion'] != "Wisconsin (2023)"]
+
+# Change all values in the ProjectName column to be "REAP_",
+# which will result in the program name being "REAP" and all
+# project names being blank (the project name will be
+# ignored in the visualization)
+reap_data.loc[:, "ProjectName"] = "REAP_"
+
 # Create the dataset by concatenating the IDP, DV, and OCED
 # modeling outputs together
-data = pd.concat([idp_data, dv_data, oced_data], ignore_index = True)
+data = pd.concat([idp_data, dv_data, oced_data, reap_data], ignore_index = True)
 
 # Delete the idp_data, dv_data, and oced_data variables because
 # they are no longer needed
-del idp_data, dv_data, oced_data
+del idp_data, dv_data, oced_data, reap_data
 
 # Rename the region, program/project, industry code, industry description,
 # output, and employment columns in-place
@@ -43,11 +56,18 @@ data[["program",
 data.loc[data['program'].isin(['Long-DurationEnergy', 'CleanEnergy', 'CarbonManagement']), 'project_truncated'] = data['project_truncated'].str.extract(r'(Assembly_)([^_]+)(_)')[1]
 
 # Replace the program acronyms with the full program names
+# data.loc[data['program'] == "IDP", 'program'] = "idp"
+# data.loc[data['program'] == "dv", 'program'] = "dv"
+# data.loc[data['program'] == "Long-DurationEnergy", 'program'] = "ldes"
+# data.loc[data['program'] == "CleanEnergy", 'program'] = "ced"
+# data.loc[data['program'] == "CarbonManagement", 'program'] = "cm"
+# data.loc[data['program'] == "REAP", 'program'] = "reap"
 data.loc[data['program'] == "IDP", 'program'] = "Industrial Demonstrations Program"
 data.loc[data['program'] == "dv", 'program'] = "Domestic Vehicles Grant Program"
 data.loc[data['program'] == "Long-DurationEnergy", 'program'] = "Long-Duration Energy Storage Demonstrations"
 data.loc[data['program'] == "CleanEnergy", 'program'] = "Clean Energy Demonstration on Current and Former Mine Land"
 data.loc[data['program'] == "CarbonManagement", 'program'] = "Carbon Management"
+data.loc[data['program'] == "REAP", 'program'] = "Rural Energy for America Program"
 
 # Import the IDP project names crosswalk
 idp_names = pd.read_csv('idp_project_names.csv')
@@ -115,8 +135,8 @@ data = data[["program",
              "district",
              "industry_code",
              "industry_desc",
-             "output",
-             "employment"]]
+             "employment",
+             "output"]]
 
 # Group rows by the combination of program, project, region,
 # and industry, and then sum the output and employment columns
@@ -130,21 +150,15 @@ data = data[["program",
 #                      "industry_desc"]).agg({'output':'sum',
 #                                             'employment':'sum'}).reset_index()
 
-# Round the output and employment columns to 4 decimal places
-data['output'] = pd.to_numeric(data['output'].str.replace(',','')).round(4)
-data['employment'] = pd.to_numeric(data['employment'].str.replace(',','')).round(4)
+# Round the employment and output columns to 4 decimal places (remove any
+# commas prior to rounding, and before that, convert to string in case
+# any program's modeling output had no commas, in which case the values
+# will be numeric)
+data['employment'] = pd.to_numeric(data['employment'].astype(str).str.replace(',','')).round(4)
+data['output'] = pd.to_numeric(data['output'].astype(str).str.replace(',','')).round(4)
 
-# Create a new set of rows with the output and employment columns
-# summed by region; for these rows, set the program, project,
-# industry code, and industry description to "All"
-# state_sum = data.groupby(["region"]).agg({'output':'sum', 'employment':'sum'}).reset_index()
-# state_sum["program"] = "All"
-# state_sum["project"] = "All"
-# state_sum["industry_code"] = "All"
-# state_sum["industry_desc"] = "All"
-
-# Concatenate the original data with the new rows
-# data = pd.concat([data, state_sum])
+# Temporarily delete the REAP data
+data = data[data['program'] != "Rural Energy for America Program"]
 
 # Write the results to a .csv file
 data.to_csv("economic_impact_data.csv", index=False)

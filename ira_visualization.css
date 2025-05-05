@@ -15,7 +15,7 @@ body {
 }
 
 .measure_controls {
-  width: 120px;
+  width: 150px;
   height: 50px;
   padding: 15px;
   background-color: #f5f5f5;
@@ -40,6 +40,7 @@ body {
   height: 18px;
   border: 2px solid #4a90e2;
   border-radius: 50%;
+  margin-left: 0px;
   margin-right: 8px;
   outline: none;
   cursor: pointer;
@@ -51,13 +52,42 @@ body {
   box-shadow: inset 0 0 0 3px #fff;
 }
 
+.measure_controls input[type="radio"]#radio_employment:hover::after {
+  content: "Total job-years at risk";
+  position: absolute;
+  min-width: 100px;
+  top: 90px;
+  font-family: "Inter", sans-serif;
+  background-color: #fafafa;
+  border-radius: 5px;
+  padding: 7px;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+.measure_controls input[type="radio"]#radio_output:hover::after {
+  content: "Total economic activity at risk";
+  position: absolute;
+  min-width: 100px;
+  top: 90px;
+  font-family: "Inter", sans-serif;
+  background-color: #fafafa;
+  border-radius: 5px;
+  padding: 7px;
+  z-index: 1;
+  opacity: 0.8;
+}
+
 #leaflet_map {
   z-index: 0;
+  box-sizing: border-box;
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
   height: 600px;
   background-color: #fff;
+  border: 2px solid #dadada;
+  border-radius: 8px;
 }
 
 .leaflet-pane.leaflet-popup-pane {
@@ -85,7 +115,8 @@ body {
 
 .leaflet-bottom .info.leaflet-control,
 .leaflet-bottom .national_button_div.leaflet-control {
-  margin: 0px 0px 10px 0px;
+  /*margin: 0px 0px 10px 0px;*/
+  margin: 0px 20px 20px 20px;
 }
 
 .legend {
@@ -277,10 +308,14 @@ body {
 }
 
 div.industry_breakdown_table {
+  box-sizing: border-box;
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
   margin-top: 50px;
+  padding: 20px;
+  border: 2px solid #dadada;
+  border-radius: 8px;
 }
 
 div.industry_breakdown_table > div:not(:last-child) {
@@ -294,10 +329,7 @@ div.industry_breakdown_table > div:first-child {
   font-size: 22px;
   font-weight: 600;
   color: #444;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin-bottom: 20px;
 }
 
 div.industry_breakdown_table > div:nth-child(2) {
@@ -319,21 +351,6 @@ div.industry_breakdown_table > div:nth-child(2) > div {
   border-radius: 6px;
   margin-bottom: 4px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-div.industry_breakdown_table > div:nth-child(4),
-div.industry_breakdown_table > div:nth-child(5) {
-  font-size: 16px;
-  color: #666;
-  padding: 8px 0px;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  font-weight: 600;
-}
-
-div.industry_breakdown_table > div:nth-child(3),
-div.industry_breakdown_table > div:nth-child(4) {
-  margin-top: 20px;
 }
 
 div.industry_breakdown_table > div:nth-child(3) > label {
@@ -374,13 +391,29 @@ div.industry_breakdown_table > div:nth-child(3) > button:active {
   background-color: #5b8fc3;
 }
 
+div.industry_breakdown_table > div:nth-child(4) {
+  font-size: 16px;
+  color: #666;
+  padding: 8px 0px;
+  border-radius: 6px;
+  margin: 20px 0px 4px 0px;
+  font-weight: 600;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+}
+
+div#total_output_impacts {
+  margin-top: 10px;
+}
+
 div.industry_breakdown_table table {
   display: block;
   width: 100%;
   max-width: 1000px;
   max-height: 500px;
   overflow-y: auto;
-  margin: 20px auto;
+  margin: 20px auto 0px auto;
   border: none;
   background-color: #f5f5f5;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -401,7 +434,7 @@ div.industry_breakdown_table th:first-child {
 }
 
 div.industry_breakdown_table th.employment_column {
-  width: 170px;
+  width: 180px;
   cursor: pointer;
 }
 
@@ -422,6 +455,7 @@ div.industry_breakdown_table tbody > tr:hover {
   background-color: #dadada;
 }
 
+.industry_column:hover,
 .employment_column:hover,
 .output_column:hover {
   background-color: #dadada;
@@ -469,7 +503,7 @@ div.industry_breakdown_table tbody > tr:hover {
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  margin: 12px 0;
+  
   transition: background-color 0.2s;
 }
 
@@ -514,6 +548,7 @@ div.industry_breakdown_table tbody > tr:hover {
   font-family: "Inter";
   font-size: 16px;
   color: #555;
+  text-align: center;
 }
 
 .source_acknowledgements > a {
