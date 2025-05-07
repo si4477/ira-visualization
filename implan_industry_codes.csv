@@ -1,0 +1,512 @@
+industry_code,industry_desc
+1,Oilseed farming
+2,Grain farming
+3,Vegetable and melon farming
+4,Fruit farming
+5,Tree nut farming
+6,"Greenhouse, nursery, and floriculture production"
+7,Tobacco farming
+8,Cotton farming
+9,Sugarcane and sugar beet farming
+10,All other crop farming
+11,"Beef cattle ranching and farming, including feedlots and dual-purpose ranching and farming"
+12,Dairy cattle and milk production
+13,Poultry and egg production
+14,"Animal production, except cattle and poultry and eggs"
+15,"Forestry, forest products, and timber tract production"
+16,Commercial logging
+17,Commercial fishing
+18,Commercial hunting and trapping
+19,Support activities for agriculture and forestry
+20,Oil and gas extraction
+21,Coal mining
+22,"Copper, nickel, lead, and zinc mining"
+23,Iron ore mining
+24,Gold ore and silver ore mining
+25,Other metal ore mining
+26,Stone mining and quarrying
+27,Sand and gravel mining
+28,"Other clay, ceramic, refractory minerals mining"
+29,Other nonmetallic mineral mining and quarrying
+30,Drilling oil and gas wells
+31,Support activities for oil and gas operations
+32,Metal mining services
+33,Other nonmetallic minerals services
+34,Electric power generation - Hydroelectric
+35,Electric power generation - Fossil  fuel
+36,Electric power generation - Nuclear
+37,Electric power generation - Solar
+38,Electric power generation - Wind
+39,Electric power generation - Geothermal
+40,Electric power generation - Biomass
+41,Electric power generation - All other
+42,Electric power transmission and distribution
+43,Natural gas distribution
+44,"Water, sewage and other systems"
+46,Construction of new manufacturing structures
+47,Construction of new power and communication structures
+50,"Construction of new commercial structures, including farm structures"
+51,Construction of other new nonresidential structures
+55,Maintenance and repair construction of nonresidential structures
+56,Maintenance and repair construction of residential structures
+57,"Maintenance and repair construction of highways, streets, bridges, and tunnels"
+58,Dog and cat food manufacturing
+59,Other animal food manufacturing
+60,Flour milling
+61,Rice milling
+62,Malt manufacturing
+63,Wet corn milling
+64,Soybean and other oilseed processing
+65,Fats and oils refining and blending
+66,Breakfast cereal manufacturing
+67,Beet sugar manufacturing
+68,Sugar cane mills and refining
+69,Nonchocolate confectionery manufacturing
+70,Chocolate and confectionery manufacturing from cacao beans
+71,Confectionery manufacturing from purchased chocolate
+72,"Frozen fruits, juices and vegetables manufacturing"
+73,Frozen specialties manufacturing
+74,Canned fruits and vegetables manufacturing
+75,Canned specialties
+76,Dehydrated food products manufacturing
+77,Cheese manufacturing
+78,"Dry, condensed, and evaporated dairy product manufacturing"
+79,Fluid milk manufacturing
+80,Creamery butter manufacturing
+81,Ice cream and frozen dessert manufacturing
+82,Frozen cakes and other pastries manufacturing
+83,Poultry processing
+84,"Animal, except poultry, slaughtering"
+85,Meat processed from carcasses
+86,Rendering and meat byproduct processing
+87,Seafood product preparation and packaging
+88,"Bread and bakery product, except frozen, manufacturing"
+89,Cookie and cracker manufacturing
+90,"Dry pasta, mixes, and dough manufacturing"
+91,Tortilla manufacturing
+92,Roasted nuts and peanut butter manufacturing
+93,Other snack food manufacturing
+94,Coffee and tea manufacturing
+95,Flavoring syrup and concentrate manufacturing
+96,"Mayonnaise, dressing, and sauce manufacturing"
+97,Spice and extract manufacturing
+98,All other food manufacturing
+99,Bottled and canned soft drinks and water
+100,Manufactured ice
+101,Breweries
+102,Wineries
+103,Distilleries
+104,Tobacco manufacturing
+105,"Fiber, yarn, and thread mills"
+106,Broadwoven fabric mills
+107,Narrow fabric mills and schiffli machine embroidery
+108,Nonwoven fabric mills
+109,Knit fabric mills
+110,Textile and fabric finishing mills
+111,Fabric coating mills
+112,Carpet and rug mills
+113,Curtain and linen mills
+114,Textile bag and canvas mills
+115,"Rope, cordage, twine, tire cord and tire fabric mills"
+116,Other textile product mills
+117,Apparel knitting mills
+118,Cut and sew apparel contractors
+119,Cut and sew apparel manufacturing (except contractors)
+120,Apparel accessories and other apparel manufacturing
+121,Leather and hide tanning and finishing
+122,Footwear manufacturing
+123,Other leather and allied product manufacturing
+124,Sawmills
+125,Wood preservation
+126,Veneer and plywood manufacturing
+127,Engineered wood member and truss manufacturing
+128,Reconstituted wood product manufacturing
+129,Wood windows and door manufacturing
+130,"Cut stock, resawing lumber, and planing"
+131,"Other millwork, including flooring"
+132,Wood container and pallet manufacturing
+133,Manufactured home (mobile home) manufacturing
+134,Prefabricated wood building manufacturing
+135,All other miscellaneous wood product manufacturing
+136,Pulp mills
+137,Paper mills
+138,Paperboard mills
+139,Paperboard container manufacturing
+140,Paper bag and coated and treated paper manufacturing
+141,Stationery product manufacturing
+142,Sanitary paper product manufacturing
+143,All other converted paper product manufacturing
+144,Printing
+145,Support activities for printing
+146,Petroleum refineries
+147,Asphalt paving mixture and block manufacturing
+148,Asphalt shingle and coating materials manufacturing
+149,Petroleum lubricating oil and grease manufacturing
+150,All other petroleum and coal products manufacturing
+151,Petrochemical manufacturing
+152,Industrial gas manufacturing
+153,Synthetic dye and pigment manufacturing
+154,Other basic inorganic chemical manufacturing
+155,Other basic organic chemical manufacturing
+156,Plastics material and resin manufacturing
+157,Synthetic rubber manufacturing
+158,Artificial and synthetic fibers and filaments manufacturing
+159,Nitrogenous fertilizer manufacturing
+160,Phosphatic fertilizer manufacturing
+161,Fertilizer mixing
+162,Pesticide and other agricultural chemical manufacturing
+163,Medicinal and botanical manufacturing
+164,Pharmaceutical preparation manufacturing
+165,In-vitro diagnostic substance manufacturing
+166,Biological product (except diagnostic) manufacturing
+167,Paint and coating manufacturing
+168,Adhesive manufacturing
+169,Soap and other detergent manufacturing
+170,Polish and other sanitation good manufacturing
+171,Surface active agent manufacturing
+172,Toilet preparation manufacturing
+173,Printing ink manufacturing
+174,Explosives manufacturing
+175,Custom compounding of purchased resins
+176,Photographic film and chemical manufacturing
+177,Other miscellaneous chemical product manufacturing
+178,Plastics packaging materials and unlaminated film and sheet manufacturing
+179,Unlaminated plastics profile shape manufacturing
+180,Plastics pipe and pipe fitting manufacturing
+181,"Laminated plastics plate, sheet (except packaging), and shape manufacturing"
+182,Polystyrene foam product manufacturing
+183,Urethane and other foam product (except polystyrene) manufacturing
+184,Plastics bottle manufacturing
+185,Other plastics product manufacturing
+186,Tire manufacturing
+187,Rubber and plastics hoses and belting manufacturing
+188,Other rubber product manufacturing
+189,"Pottery, ceramics, and plumbing fixture manufacturing"
+190,"Brick, tile, and other structural clay product manufacturing"
+191,Flat glass manufacturing
+192,Other pressed and blown glass and glassware manufacturing
+193,Glass container manufacturing
+194,Glass product manufacturing made of purchased glass
+195,Cement manufacturing
+196,Ready-mix concrete manufacturing
+197,Concrete block and brick manufacturing
+198,Concrete pipe manufacturing
+199,Other concrete product manufacturing
+200,Lime manufacturing
+201,Gypsum product manufacturing
+202,Abrasive product manufacturing
+203,Cut stone and stone product manufacturing
+204,Ground or treated mineral and earth manufacturing
+205,Mineral wool manufacturing
+206,Miscellaneous nonmetallic mineral products manufacturing
+207,Iron and steel mills and ferroalloy manufacturing
+208,"Iron, steel pipe and tube manufacturing from purchased steel"
+209,Rolled steel shape manufacturing
+210,Steel wire drawing
+211,Alumina refining and primary aluminum production
+212,Secondary smelting and alloying of aluminum
+213,"Aluminum sheet, plate, and foil manufacturing"
+214,"Other aluminum rolling, drawing and extruding"
+215,Nonferrous metal (exc aluminum) smelting and refining
+216,"Copper rolling, drawing, extruding and alloying"
+217,"Nonferrous metal, except copper and aluminum, shaping"
+218,Secondary processing of other nonferrous metals
+219,Ferrous metal foundries
+220,Nonferrous metal foundries
+221,Custom roll forming
+222,"Metal crown, closure, and other metal stamping (except automotive)"
+223,Iron and steel forging
+224,Nonferrous forging
+225,"Cutlery, utensil, pot, and pan manufacturing"
+226,Handtool manufacturing
+227,Prefabricated metal buildings and components manufacturing
+228,Fabricated structural metal manufacturing
+229,Plate work manufacturing
+230,Metal window and door manufacturing
+231,Sheet metal work manufacturing
+232,Ornamental and architectural metal work manufacturing
+233,Power boiler and heat exchanger manufacturing
+234,Metal tank (heavy gauge) manufacturing
+235,Metal cans manufacturing
+236,"Metal barrels, drums and pails manufacturing"
+237,Hardware manufacturing
+238,Spring and wire product manufacturing
+239,Machine shops
+240,"Turned product and screw, nut, and bolt manufacturing"
+241,Metal heat treating
+242,Metal coating and nonprecious engraving
+243,"Electroplating, anodizing, and coloring metal"
+244,"Valve and fittings, other than plumbing, manufacturing"
+245,Plumbing fixture fitting and trim manufacturing
+246,Ball and roller bearing manufacturing
+247,Small arms ammunition manufacturing
+248,"Ammunition, except for small arms, manufacturing"
+249,"Small arms, ordnance, and accessories manufacturing"
+250,Fabricated pipe and pipe fitting manufacturing
+251,Other fabricated metal manufacturing
+252,Farm machinery and equipment manufacturing
+253,Lawn and garden equipment manufacturing
+254,Construction machinery manufacturing
+255,Mining machinery and equipment manufacturing
+256,Oil and gas field machinery and equipment manufacturing
+257,Semiconductor machinery manufacturing
+258,Food product machinery manufacturing
+259,"Sawmill, woodworking, and paper machinery"
+260,All other industrial machinery manufacturing
+261,Commercial and service industry machinery manufacturing
+262,Industrial and commercial fan and blower and air purification equipment manufacturing
+263,Heating equipment (except warm air furnaces) manufacturing
+264,"Air conditioning, refrigeration, and warm air heating equipment manufacturing"
+265,Industrial mold manufacturing
+266,"Special tool, die, jig, and fixture manufacturing"
+267,Cutting tool and machine tool accessory manufacturing
+268,Machine tool manufacturing
+269,Rolling mill and other metalworking machinery manufacturing
+270,Turbine and turbine generator set units manufacturing
+271,"Speed changer, industrial high-speed drive, and gear manufacturing"
+272,Mechanical power transmission equipment manufacturing
+273,Other engine equipment manufacturing
+274,"Measuring, dispensing, and other pumping equipment manufacturing"
+275,Air and gas compressor manufacturing
+276,Elevator and moving stairway manufacturing
+277,Conveyor and conveying equipment manufacturing
+278,"Overhead cranes, hoists, and monorail systems manufacturing"
+279,"Industrial truck, trailer, and stacker manufacturing"
+280,Power-driven handtool manufacturing
+281,Welding and soldering equipment manufacturing
+282,Packaging machinery manufacturing
+283,Industrial process furnace and oven manufacturing
+284,Fluid power cylinder and actuator manufacturing
+285,Fluid power pump and motor manufacturing
+286,"Scales, balances, and miscellaneous general purpose machinery manufacturing"
+287,Electronic computer manufacturing
+288,Computer storage device manufacturing
+289,Computer terminals and other computer peripheral equipment manufacturing
+290,Telephone apparatus manufacturing
+291,Broadcast and wireless communications equipment manufacturing
+292,Other communications equipment manufacturing
+293,Audio and video equipment manufacturing
+294,Printed circuit assembly (electronic assembly) manufacturing
+295,Bare printed circuit board manufacturing
+296,Semiconductor and related device manufacturing
+297,"Capacitor, resistor, coil, transformer, and other inductor manufacturing"
+298,Electronic connector manufacturing
+299,Other electronic component manufacturing
+300,Electromedical and electrotherapeutic apparatus manufacturing
+301,"Search, detection, and navigation instruments manufacturing"
+302,Automatic environmental control manufacturing
+303,Industrial process variable instruments manufacturing
+304,Totalizing fluid meter and counting device manufacturing
+305,Electricity and signal testing instruments manufacturing
+306,Analytical laboratory instrument manufacturing
+307,Irradiation apparatus manufacturing
+308,"Watch, clock, and other measuring and controlling device manufacturing"
+309,Manufacturing and reproducing magnetic and optical media
+310,Electric lamp bulb and part manufacturing
+311,Lighting fixture manufacturing
+312,Small electrical appliance manufacturing
+313,Major household appliance manufacturing
+314,"Power, distribution, and specialty transformer manufacturing"
+315,Motor and generator manufacturing
+316,Switchgear and switchboard apparatus manufacturing
+317,Relay and industrial control manufacturing
+318,Battery manufacturing
+319,Fiber optic cable manufacturing
+320,Other communication and energy wire manufacturing
+321,Wiring device manufacturing
+322,Carbon and graphite product manufacturing
+323,All other miscellaneous electrical equipment and component manufacturing
+324,Automobile and light duty motor vehicle manufacturing
+325,Heavy duty truck manufacturing
+326,Motor vehicle body manufacturing
+327,Truck trailer manufacturing
+328,Motor home manufacturing
+329,Travel trailer and camper manufacturing
+330,Motor vehicle gasoline engine and engine parts manufacturing
+331,Motor vehicle electrical and electronic equipment manufacturing
+332,Motor vehicle transmission and power train parts manufacturing
+333,Motor vehicle seating and interior trim manufacturing
+334,Motor vehicle metal stamping
+335,Other motor vehicle parts manufacturing
+336,"Motor vehicle steering, suspension component (except spring), and brake systems manufacturing"
+337,Aircraft manufacturing
+338,Aircraft engine and engine parts manufacturing
+339,Other aircraft parts and auxiliary equipment manufacturing
+340,Guided missile and space vehicle manufacturing
+341,Propulsion units and parts for space vehicles and guided missiles manufacturing
+342,Railroad rolling stock manufacturing
+343,Ship building and repairing
+344,Boat building
+345,"Motorcycle, bicycle, and parts manufacturing"
+346,"Military armored vehicle, tank, and tank component manufacturing"
+347,All other transportation equipment manufacturing
+348,Wood kitchen cabinet and countertop manufacturing
+349,Upholstered household furniture manufacturing
+350,Nonupholstered wood household furniture manufacturing
+351,Other household nonupholstered furniture manufacturing
+352,Institutional furniture manufacturing
+353,Wood office furniture manufacturing
+354,Custom architectural woodwork and millwork
+355,"Office furniture, except wood, manufacturing"
+356,"Showcase, partition, shelving, and locker manufacturing"
+357,Mattress manufacturing
+358,Blind and shade manufacturing
+359,Surgical and medical instrument manufacturing
+360,Surgical appliance and supplies manufacturing
+361,Dental equipment and supplies manufacturing
+362,Ophthalmic goods manufacturing
+363,Dental laboratories
+364,Jewelry and silverware manufacturing
+365,Sporting and athletic goods manufacturing
+366,"Doll, toy, and game manufacturing"
+367,Office supplies (except paper) manufacturing
+368,Sign manufacturing
+369,"Gasket, packing, and sealing device manufacturing"
+370,Musical instrument manufacturing
+371,"Fasteners, buttons, needles, and pins manufacturing"
+372,"Broom, brush, and mop manufacturing"
+373,Burial casket manufacturing
+374,All other miscellaneous manufacturing
+375,Wholesale - Motor vehicle and motor vehicle parts and supplies
+376,Wholesale - Professional and commercial equipment and supplies
+377,Wholesale - Household appliances and electrical and electronic goods
+378,"Wholesale - Machinery, equipment, and supplies"
+379,Wholesale - Other durable goods merchant wholesalers
+380,Wholesale - Drugs and druggists’ sundries
+381,Wholesale - Grocery and related product wholesalers
+382,Wholesale - Petroleum and petroleum products
+383,Wholesale - Other nondurable goods merchant wholesalers
+384,Wholesale - Wholesale electronic markets and agents and brokers
+385,Retail - Motor vehicle and parts dealers
+386,Retail - Furniture and home furnishings stores
+387,Retail - Electronics and appliance stores
+388,Retail - Building material and garden equipment and supplies stores
+389,Retail - Food and beverage stores
+390,Retail - Health and personal care stores
+391,Retail - Gasoline stores
+392,Retail - Clothing and clothing accessories stores
+393,"Retail - Sporting goods, hobby, musical instrument and book stores"
+394,Retail - General merchandise stores
+395,Retail - Miscellaneous store retailers
+396,Air transportation
+397,Rail transportation
+398,Water transportation
+399,Truck transportation
+400,Transit and ground passenger transportation
+401,Pipeline transportation
+402,Scenic and sightseeing transportation and support activities for transportation
+403,Couriers and messengers
+404,Warehousing and storage
+405,Newspaper publishers
+406,Periodical publishers
+407,Book publishers
+408,"Directory, mailing list, and other publishers"
+409,Greeting card publishing
+410,Software publishers
+411,Motion picture and video industries
+412,Sound recording industries
+413,Radio and television broadcasting
+414,Cable and other subscription programming
+415,Wired telecommunications carriers
+416,Wireless telecommunications carriers (except satellite)
+417,"Satellite, telecommunications resellers, and all other telecommunications"
+418,"Data processing, hosting, and related services"
+419,"News syndicates, libraries, archives and all other information services"
+420,Internet publishing and broadcasting and web search portals
+421,Nondepository credit intermediation and related activities
+422,Securities and commodity contracts intermediation and brokerage
+423,Monetary authorities and depository credit intermediation
+424,Other financial investment activities
+425,Direct life insurance carriers
+426,"Insurance carriers, except direct life"
+427,"Insurance agencies, brokerages, and related activities"
+428,"Funds, trusts, and other financial vehicles"
+429,Other real estate
+430,Tenant-occupied housing
+431,Owner-occupied housing
+432,Automotive equipment rental and leasing
+433,General and consumer goods rental except video tapes and discs
+434,Video tape and disc rental
+435,Commercial and industrial machinery and equipment rental and leasing
+436,Lessors of nonfinancial intangible assets
+437,Legal services
+438,"Accounting, tax preparation, bookkeeping, and payroll services"
+439,"Architectural, engineering, and related services"
+440,Specialized design services
+441,Custom computer programming services
+442,Computer systems design services
+443,"Other computer related services, including facilities management"
+444,Management consulting services
+445,Environmental and other technical consulting services
+446,Scientific research and development services
+447,"Advertising, public relations, and related services"
+448,Photographic services
+449,Veterinary services
+450,"All other miscellaneous professional, scientific, and technical services"
+451,Management of companies and enterprises
+452,Office administrative services
+453,Facilities support services
+454,Employment services
+455,Business support services
+456,Travel arrangement and reservation services
+457,Investigation and security services
+458,Services to buildings
+459,Landscape and horticultural services
+460,Other support services
+461,Waste management and remediation services
+462,Elementary and secondary schools
+463,"Junior colleges, colleges, universities, and professional schools"
+464,Other educational services
+465,Offices of physicians
+466,Offices of dentists
+467,Offices of other health practitioners
+468,Outpatient care centers
+469,Medical and diagnostic laboratories
+470,Home health care services
+471,Other ambulatory health care services
+472,Hospitals
+473,Nursing and community care facilities
+474,"Residential mental health, substance abuse, and other residential care facilities"
+475,Individual and family services
+476,Child day care services
+477,"Community food, housing, and other relief services, including rehabilitation services"
+478,Performing arts companies
+479,Commercial Sports Except Racing
+480,Racing and Track Operation
+481,"Independent artists, writers, and performers"
+482,Promoters of performing arts and sports and agents for public figures
+483,"Museums, historical sites, zoos, and parks"
+484,Amusement parks and arcades
+485,Gambling industries (except casino hotels)
+486,Other amusement and recreation industries
+487,Fitness and recreational sports centers
+488,Bowling centers
+489,"Hotels and motels, including casino hotels"
+490,Other accommodations
+491,Full-service restaurants
+492,Limited-service restaurants
+493,All other food and drinking places
+494,"Automotive repair and maintenance, except car washes"
+495,Car washes
+496,Electronic and precision equipment repair and maintenance
+497,Commercial and industrial machinery and equipment repair and maintenance
+498,Personal and household goods repair and maintenance
+499,Personal care services
+500,Death care services
+501,Dry-cleaning and laundry services
+502,Other personal services
+503,Religious organizations
+504,"Grantmaking, giving, and social advocacy organizations"
+505,Business and professional associations
+506,Labor and civic organizations
+507,Private households
+508,Postal service
+509,Federal electric utilities
+510,Other federal government enterprises
+511,State government passenger transit
+512,State government electric utilities
+513,Other state government enterprises
+514,Local government passenger transit
+515,Local government electric utilities
+516,Other local government enterprises
+999,Other

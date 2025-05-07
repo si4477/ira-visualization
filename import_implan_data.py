@@ -1,6 +1,12 @@
 # Import pandas
 import pandas as pd
 
+# Specify thresholds for employment and output; rows in the
+# final dataset that have values less than these will be
+# collapsed into an "Other" industry (see below)
+employment_threshold = 10
+output_threshold = 100
+
 # Import the IMPLAN IDP modeling outputs
 idp_data = pd.read_csv('idp_implan_outputs.csv')
 
@@ -18,26 +24,25 @@ reap_data = pd.read_csv('reap_implan_outputs.csv')
 # in the DestinationRegion column
 reap_data = reap_data[reap_data['DestinationRegion'] != "Wisconsin (2023)"]
 
-# Change all values in the ProjectName column to be "REAP_",
-# which will result in the program name being "REAP" and all
-# project names being blank (the project name will be
-# ignored in the visualization)
+# Change all values in the ProjectName column in the REAP data
+# to be "REAP_", which will result in the program name being
+# "REAP" and all project names being blank (the project name
+# will be ignored in the visualization)
 reap_data.loc[:, "ProjectName"] = "REAP_"
 
-# Create the dataset by concatenating the IDP, DV, and OCED
-# modeling outputs together
+# Create a composite dataset by concatenating the IDP, DV,
+# OCED, and REAP modeling outputs together
 data = pd.concat([idp_data, dv_data, oced_data, reap_data], ignore_index = True)
 
-# Delete the idp_data, dv_data, and oced_data variables because
-# they are no longer needed
+# Delete the idp_data, dv_data, oced_data, and reap_data
+# variables because they are no longer needed
 del idp_data, dv_data, oced_data, reap_data
 
-# Rename the region, program/project, industry code, industry description,
+# Rename the region, program/project, industry code,
 # output, and employment columns in-place
 data.rename(columns={"DestinationRegion": "region",
                      "ProjectName": "program_project",
                      "IndustryCode": "industry_code",
-                     "IndustryDescription": "industry_desc",
                      "Output": "output",
                      "Employment": "employment"},
             inplace=True)
@@ -45,7 +50,8 @@ data.rename(columns={"DestinationRegion": "region",
 # Split the program_project column into two new columns based
 # on the underscore separator (call the project column
 # "project_truncated" because these are truncated project
-# names; the full project names will be merged in below)
+# names; the full project names for some programs will
+# be merged in below)
 data[["program",
       "project_truncated"]] = data["program_project"].str.split('_', n=1, expand=True)
 
@@ -55,19 +61,15 @@ data[["program",
 # next underscore character
 data.loc[data['program'].isin(['Long-DurationEnergy', 'CleanEnergy', 'CarbonManagement']), 'project_truncated'] = data['project_truncated'].str.extract(r'(Assembly_)([^_]+)(_)')[1]
 
-# Replace the program acronyms with the full program names
-# data.loc[data['program'] == "IDP", 'program'] = "idp"
-# data.loc[data['program'] == "dv", 'program'] = "dv"
-# data.loc[data['program'] == "Long-DurationEnergy", 'program'] = "ldes"
-# data.loc[data['program'] == "CleanEnergy", 'program'] = "ced"
-# data.loc[data['program'] == "CarbonManagement", 'program'] = "cm"
-# data.loc[data['program'] == "REAP", 'program'] = "reap"
-data.loc[data['program'] == "IDP", 'program'] = "Industrial Demonstrations Program"
-data.loc[data['program'] == "dv", 'program'] = "Domestic Vehicles Grant Program"
-data.loc[data['program'] == "Long-DurationEnergy", 'program'] = "Long-Duration Energy Storage Demonstrations"
-data.loc[data['program'] == "CleanEnergy", 'program'] = "Clean Energy Demonstration on Current and Former Mine Land"
-data.loc[data['program'] == "CarbonManagement", 'program'] = "Carbon Management"
-data.loc[data['program'] == "REAP", 'program'] = "Rural Energy for America Program"
+# Replace the existing program acronyms or program names with
+# consistent, lowercase acronyms to reduce the data file size;
+# the program names will be listed out in full in the visualization
+data.loc[data['program'] == "IDP", 'program'] = "idp"
+data.loc[data['program'] == "dv", 'program'] = "dv"
+data.loc[data['program'] == "Long-DurationEnergy", 'program'] = "ldes"
+data.loc[data['program'] == "CleanEnergy", 'program'] = "ced"
+data.loc[data['program'] == "CarbonManagement", 'program'] = "cm"
+data.loc[data['program'] == "REAP", 'program'] = "reap"
 
 # Import the IDP project names crosswalk
 idp_names = pd.read_csv('idp_project_names.csv')
@@ -92,7 +94,7 @@ data = data.merge(names_data, how='left', left_on='project_truncated', right_on=
 del names_data
 
 # Create a "project" column that has the full name if one has been
-# merged and has the truncated name otherwise
+# merged or has the truncated name otherwise
 data['project'] = ""
 data.loc[~data['full_name'].isna(), 'project'] = data['full_name']
 data.loc[data['full_name'].isna(), 'project'] = data['project_truncated']
@@ -134,21 +136,8 @@ data = data[["program",
              "state",
              "district",
              "industry_code",
-             "industry_desc",
              "employment",
              "output"]]
-
-# Group rows by the combination of program, project, region,
-# and industry, and then sum the output and employment columns
-# within those groups (this sums over direct, indirect, and
-# induced impacts as reflected by the ImpactType column; that
-# column was deleted above)
-# data = data.groupby(["program",
-#                      "project",
-#                      "region",
-#                      "industry_code",
-#                      "industry_desc"]).agg({'output':'sum',
-#                                             'employment':'sum'}).reset_index()
 
 # Round the employment and output columns to 4 decimal places (remove any
 # commas prior to rounding, and before that, convert to string in case
@@ -157,8 +146,43 @@ data = data[["program",
 data['employment'] = pd.to_numeric(data['employment'].astype(str).str.replace(',','')).round(4)
 data['output'] = pd.to_numeric(data['output'].astype(str).str.replace(',','')).round(4)
 
-# Temporarily delete the REAP data
-data = data[data['program'] != "Rural Energy for America Program"]
+# Delete any rows where both the employment value and the output
+# value are zero (to avoid issues related to floating point numbers,
+# the calculation checks if the values are within a tolerance
+# of zero)
+def is_zero(x, tolerance=1e-8):
+    return abs(x) < tolerance
+data = data[~(data['employment'].apply(is_zero) & data['output'].apply(is_zero))]
+
+# Extract any rows where the employment value is less than
+# the threshold and the output value is also less than the
+# threshold; remove these rows from the original dataset
+data_threshold = data[(data['employment'] < employment_threshold) & (data['output'] < output_threshold)].copy()
+data = data[(data['employment'] >= employment_threshold) | (data['output'] >= output_threshold)]
+
+# Group the extracted rows by the combination of program,
+# project, state, and district, and then sum the employment
+# and output columns within those groups
+data_threshold = data_threshold.groupby(["program",
+                                         "project",
+                                         "state",
+                                         "district",]).agg({'output':'sum',
+                                                            'employment':'sum'}).reset_index()
+
+# These aggregated rows represent a newly created "Other"
+# industry, which has code 999; add a column with that code
+data_threshold['industry_code'] = "999"
+
+# Concatenate the new rows with the original dataset
+data = pd.concat([data, data_threshold], ignore_index=True)
+
+# Delete the data_threshold variable because it is
+# no longer needed
+del data_threshold
+
+# Again round the employment and output columns to 4 decimal places
+data['employment'] = data['employment'].round(4)
+data['output'] = data['output'].round(4)
 
 # Write the results to a .csv file
 data.to_csv("economic_impact_data.csv", index=False)

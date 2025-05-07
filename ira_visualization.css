@@ -78,6 +78,10 @@ body {
   opacity: 0.8;
 }
 
+#map_container {
+  position: relative;
+}
+
 #leaflet_map {
   z-index: 0;
   box-sizing: border-box;
@@ -153,6 +157,17 @@ body {
   padding: 0 4px;
 }
 
+#loading_message {
+  position: absolute;
+  left: calc(50% - 60px);
+  top: 45%;
+  width: 120px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 24px;
+  color: #444;
+}
+
 .multiselect {
   margin-top: 43px;
   width: 170px;
@@ -192,6 +207,7 @@ body {
 
 .selectBox {
   position: relative;
+  cursor: pointer;
 }
 
 .selectBox select {
