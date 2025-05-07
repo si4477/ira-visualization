@@ -22,6 +22,17 @@
           <label for="radio_output"><input type="radio" id="radio_output" value="Output" name="economic_measure"/>Economic Output</label>
         </div>
         <div class="multiselect">
+          <div class="selectBox" onclick="showAgencyCheckboxes()">
+            <select>
+              <option>Filter by Agency(ies)</option>
+            </select>
+            <div class="overSelect"></div>
+          </div>
+          <input type="text"/ id="agency_checkboxes_filter" class="filter_for_filter">
+          <div id="agency_checkboxes">
+          </div>
+        </div>
+        <div class="multiselect">
           <div class="selectBox" onclick="showProgramCheckboxes()">
             <select>
               <option>Filter by Program(s)</option>

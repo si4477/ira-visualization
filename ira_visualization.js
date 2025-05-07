@@ -26,6 +26,7 @@ var show_output_or_employment = "employment";
 /* Track whether the program, project,
    state, and district drop-down menus
    are expanded and visible */
+var agency_expanded = false;
 var program_expanded = false;
 var project_expanded = false;
 var state_expanded = false;
@@ -101,6 +102,11 @@ function hideAllCheckboxes() {
   hideProjectCheckboxes();
   hideStateCheckboxes();
   hideDistrictCheckboxes();
+}
+
+// Toggle the program checkboxes visibility
+function showAgencyCheckboxes() {
+
 }
 
 // Toggle the program checkboxes visibility
