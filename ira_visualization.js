@@ -13,6 +13,7 @@ var map = L.map('leaflet_map', {
     dragging: false,
     scrollWheelZoom: false,
     zoomSnap: 0.1,
+    touchZoom: false,
     attributionControl: false
   }).setView([35.8, -96], 4.3);
 
@@ -420,11 +421,17 @@ function updateTable() {
 
 
 function setColorScale(max_value) {
-  if (show_output_or_employment == "output") {  
-    color = d3.scaleSequential([0, max_value], ["#ffe1bd", "#faa635"]);
+  let some_impact = Number.isFinite(max_value) && max_value > 0;
+  if(some_impact) {
+    if (show_output_or_employment == "output") {  
+      color = d3.scaleSequential([0, max_value], ["#fafafa", "#faa635"]);
+    }
+    else {
+      color = d3.scaleSequential([0, max_value], ["#fafafa", "#1d468d"]);
+    }
   }
   else {
-    color = d3.scaleSequential([0, max_value], ["#b1b3d4", "#1d468d"]);
+    color = d3.scaleSequential([0, 0], ["#fafafa", "#fafafa"]);
   }
 }
 
@@ -519,8 +526,8 @@ function addMapLegend(max_value) {
     gradientDiv.className = 'gradient';
     
     // Set the gradient colors as CSS variables
-    gradientDiv.style.setProperty('--start-color', some_impact ? color(0) : '#dadada');
-    gradientDiv.style.setProperty('--end-color', some_impact ? color(max_value) : '#dadada');
+    gradientDiv.style.setProperty('--start-color', some_impact ? color(0) : color(0));
+    gradientDiv.style.setProperty('--end-color', some_impact ? color(max_value) : color(0));
     
     // Create labels container
     var labelsDiv = document.createElement('div');
@@ -563,11 +570,11 @@ function style_states(feature) {
     }
 
     return {
-        fillColor: state_total > 0 ? color(state_total) : "#fcfcfc",
+        fillColor: color(state_total),
         weight: 1,
         opacity: 1,
         color: '#dadada',
-        fillOpacity: 0.7
+        fillOpacity: 1
     };
 
   }
@@ -607,11 +614,11 @@ function style_districts(feature) {
     let district_data = mapDistrictsData.filter(d => d.district === feature.properties.CD);
 
     return {
-      fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : "#fcfcfc",
+      fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : color(0),
       weight: 1,
       opacity: 1,
       color: '#dadada',
-      fillOpacity: 0.7
+      fillOpacity: 1
     };
 
   }
@@ -621,11 +628,11 @@ function style_districts(feature) {
       let district_data = mapDistrictsData.filter(d => d.district === current_geography);
 
       return {
-        fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : "#fcfcfc",
+        fillColor: (district_data.length > 0 && district_data[0][show_output_or_employment] > 0) ? color(district_data[0][show_output_or_employment]) : color(0),
         weight: 1,
         opacity: 1,
         color: '#dadada',
-        fillOpacity: 0.7
+        fillOpacity: 1
       };
     }
     else {
