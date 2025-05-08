@@ -117,12 +117,11 @@ del values_to_match
 data['district'] = data['region'].str.extract(r'-(.*)\s')
 data['district'] = data['district'].str.split().str[0]
 
-# For the seven states that have only one congressional district,
+# For the six states that have only one congressional district,
 # replace the district number "01" with "00" to match the
 # district-level geojson data
 one_district_states = ['Alaska',
                        'Delaware',
-                       'Montana',
                        'North Dakota',
                        'South Dakota',
                        'Vermont',

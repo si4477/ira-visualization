@@ -15,7 +15,7 @@ var map = L.map('leaflet_map', {
     zoomSnap: 0.1,
     touchZoom: false,
     attributionControl: false
-  }).setView([35.8, -96], 4.3);
+  }).setView([36.8, -96], 4.2);
 
 // Call the function to render the visualization
 drawVisualization();
@@ -34,6 +34,7 @@ var district_expanded = false;
 
 /* Track the currently selected programs
    and projects */
+var selected_agencies = [];
 var selected_programs = [];
 var selected_projects = [];
 
@@ -49,6 +50,9 @@ var full_data;
 // Define a variable to store the IMPLAN industry codes
 var implan_industry_codes;
 
+// Define a variable to store the agency-program crosswalk
+var agency_program_crosswalk;
+
 // Define a variable to store the color scale for the map
 var color;
 
@@ -56,6 +60,16 @@ var geojson;
 
 // Track whether the table has been filtered
 var table_is_filtered = false;
+
+function hideAgencyCheckboxes() {
+  document.getElementById("agency_checkboxes_filter").style.display = "none";
+  document.getElementById("agency_checkboxes_filter").value = "";
+  document.getElementById("agency_checkboxes").style.display = "none";
+  document.querySelectorAll('#agency_checkboxes label').forEach(function(label) { 
+    label.style.display = "block";
+  });
+  agency_expanded = false;
+}
 
 function hideProgramCheckboxes() {
   document.getElementById("program_checkboxes_filter").style.display = "none";
@@ -98,6 +112,7 @@ function hideDistrictCheckboxes() {
 }
 
 function hideAllCheckboxes() {
+  hideAgencyCheckboxes();
   hideProgramCheckboxes();
   hideProjectCheckboxes();
   hideStateCheckboxes();
@@ -106,11 +121,26 @@ function hideAllCheckboxes() {
 
 // Toggle the program checkboxes visibility
 function showAgencyCheckboxes() {
+  hideProgramCheckboxes();
+  hideProjectCheckboxes();
+  hideStateCheckboxes();
+  hideDistrictCheckboxes();
 
+  var checkboxes_filter = document.getElementById("agency_checkboxes_filter");
+  var checkboxes = document.getElementById("agency_checkboxes");
+  if (!agency_expanded) {
+    checkboxes_filter.style.display = "block";
+    checkboxes_filter.focus();
+    checkboxes.style.display = "flex";
+    agency_expanded = true;
+  } else {
+    hideAgencyCheckboxes();
+  }
 }
 
 // Toggle the program checkboxes visibility
 function showProgramCheckboxes() {
+  hideAgencyCheckboxes();
   hideProjectCheckboxes();
   hideStateCheckboxes();
   hideDistrictCheckboxes();
@@ -129,11 +159,36 @@ function showProgramCheckboxes() {
 
 // Toggle the project checkboxes visibility
 function showProjectCheckboxes() {
+
+  // Determine if REAP is the only visible program
+  let only_reap = false;
+
+  
+  if((selected_programs.length == 1 && selected_programs[0] == "reap") ||
+     (selected_agencies.length == 1 && selected_agencies[0] == "USDA")) {
+    only_reap = true;
+  }
+  
+  if (current_zoom_level != "national") {
+    let program_names = full_data;
+    if(current_zoom_level === "state") {
+      program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
+    }
+    else if(current_zoom_level === "district") {
+      program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
+    }
+    program_names = [...new Set(program_names)];
+    if(program_names.length == 1 && program_names[0] == "reap") {
+      only_reap = true;
+    }
+  }
+
   /* Only toggle the project checkboxes open or closed
      if programs other than REAP are selected (because
      REAP was not modeled at the project level) */
-  if(!(selected_programs.length == 1 && selected_programs[0] == "reap")) {
+  if(!only_reap) {
 
+    hideAgencyCheckboxes();
     hideProgramCheckboxes();
     hideStateCheckboxes();
     hideDistrictCheckboxes();
@@ -153,6 +208,7 @@ function showProjectCheckboxes() {
 }
 
 function showStateCheckboxes() {
+  hideAgencyCheckboxes();
   hideProgramCheckboxes();
   hideProjectCheckboxes();
   hideDistrictCheckboxes();
@@ -170,6 +226,7 @@ function showStateCheckboxes() {
 }
 
 function showDistrictCheckboxes() {
+  hideAgencyCheckboxes();
   hideProgramCheckboxes();
   hideProjectCheckboxes();
   hideStateCheckboxes();
@@ -184,6 +241,52 @@ function showDistrictCheckboxes() {
   } else {
     hideDistrictCheckboxes();
   }
+}
+
+function updateAgencySelectedValues() {
+  selected_agencies = [];
+  var checkboxes = document.querySelectorAll('#agency_checkboxes input[type="checkbox"]:checked');
+  checkboxes.forEach(function(checkbox) {
+    selected_agencies.push(checkbox.value);
+  });
+
+  updateTableData();
+  updateTable();
+  updateMapData();
+  info.update();
+
+  let max_value;
+  if(current_zoom_level === "national") {
+    let curr_values;
+    curr_values = mapData.map(d => d[show_output_or_employment]);
+    max_value = Math.max(...curr_values);
+  }
+  else if(current_zoom_level === "state") {
+    max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
+  }
+  else {
+    let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
+    max_value = filtered_data[0][show_output_or_employment];
+  }
+
+  setColorScale(max_value);
+  addMapLegend(max_value);
+
+  
+  geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
+
+  if (selected_agencies.length > 0) {
+    d3.select(".industry_breakdown_table #table_agencies_label").text("For selected agencies: " + selected_agencies);
+  }
+  else {
+    d3.select(".industry_breakdown_table #table_agencies_label").text("For all agencies");
+  }
+  
+  updateProgramCheckboxes();
+  updateProjectCheckboxes();
+  updateStateCheckboxes();
+  updateDistrictCheckboxes();
 }
 
 function updateProgramSelectedValues() {
@@ -222,12 +325,13 @@ function updateProgramSelectedValues() {
   document.querySelectorAll('.program_checkbox:checked + label').forEach(label => selected_labels.push(label.textContent));
 
   if (selected_programs.length > 0) {
-    d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(2)").text("For selected programs: " + selected_labels);
+    d3.select(".industry_breakdown_table #table_programs_label").text("For selected programs: " + selected_labels);
   }
   else {
-    d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(2)").text("For all programs");
+    d3.select(".industry_breakdown_table #table_programs_label").text("For all programs");
   }
 
+  updateAgencyCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
   updateDistrictCheckboxes();
@@ -267,12 +371,13 @@ function updateProjectSelectedValues() {
   geojson_districts.setStyle(style_districts);
 
   if (selected_projects.length > 0) {
-    d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(3)").text("For selected projects: " + selected_projects);
+    d3.select(".industry_breakdown_table #table_projects_label").text("For selected projects: " + selected_projects);
   }
   else {
-    d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(3)").text("For all projects");
+    d3.select(".industry_breakdown_table #table_projects_label").text("For all projects");
   }
 
+  updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateStateCheckboxes();
   updateDistrictCheckboxes();
@@ -329,6 +434,12 @@ function updateTableData() {
   }
   else if(current_zoom_level === "district") {
     filtered_data = full_data.filter(d => (d.state === current_state) && (d.district === current_geography));
+  }
+
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    filtered_data = filtered_data.filter(d => induced_programs.includes(d.program));
   }
 
   // Filter based on selected programs
@@ -446,6 +557,13 @@ var mapDistrictsData;
 function updateMapData() {
   mapData = full_data;
   mapDistrictsData = full_data;
+
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    mapData = mapData.filter(d => induced_programs.includes(d.program));
+    mapDistrictsData = mapDistrictsData.filter(d => induced_programs.includes(d.program));
+  }
 
   // Filter based on selected programs if any are selected
   if (selected_programs.length > 0) {
@@ -667,17 +785,18 @@ function zoomToNational() {
   updateTable();
   updateMapData();
   info.update();
-  d3.select(".industry_breakdown_table div:nth-child(2) div:first-child").text("For the United States");
+  d3.select(".industry_breakdown_table #table_geography_label").text("For the United States");
 
   let max_value = Math.max(...mapData.map(d => parseFloat(d[show_output_or_employment])));
   setColorScale(max_value);
   addMapLegend(max_value);
+  updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
   updateDistrictCheckboxes();
 
-  map.setView([35.8, -96], 4.3);
+  map.setView([36.8, -96], 4.2);
 
   geojson.resetStyle();
   geojson_districts.resetStyle();
@@ -706,7 +825,7 @@ function zoomToState(state_name) {
   updateTableData();
   updateTable();
   updateMapData();
-  d3.select(".industry_breakdown_table div:nth-child(2) div:first-child").text("For " + state_name);
+  d3.select(".industry_breakdown_table #table_geography_label").text("For " + state_name);
   info.update(state_name, mapDistrictsData.length);
 
   let max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
@@ -714,6 +833,7 @@ function zoomToState(state_name) {
   addMapLegend(max_value);
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
+  updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
@@ -725,6 +845,7 @@ function zoomToDistrict(state_name, district_number) {
   current_geography = district_number;
   current_zoom_level = "district";
 
+
   let district_layer = geojson_districts.getLayers().find(layer => (layer.feature.properties.STATE === current_geography_code) && (layer.feature.properties.CD === district_number));
   
   
@@ -734,7 +855,7 @@ function zoomToDistrict(state_name, district_number) {
   updateTableData();
   updateTable();
   updateMapData();
-  d3.select(".industry_breakdown_table div:nth-child(2) div:first-child").text("For " + current_state + " - District " + current_geography);
+  d3.select(".industry_breakdown_table #table_geography_label").text("For " + current_state + " - District " + current_geography);
   info.update(state_name, mapDistrictsData.length);
 
   // Extract the data for the district that was clicked
@@ -758,11 +879,64 @@ function zoomToDistrict(state_name, district_number) {
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
 
+  updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
   updateDistrictCheckboxes();
 }
+
+function handRadioEmploymentClick(e) {
+
+  show_output_or_employment = "employment";
+
+  updateMapData();
+
+  let max_value;
+  if(current_zoom_level === "national") {
+    let curr_values;
+    curr_values = mapData.map(d => d.employment);
+    max_value = Math.max(...curr_values);
+  }
+  else if(current_zoom_level === "state") {
+    max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
+  }
+  else {
+    let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
+    max_value = filtered_data.length > 0 ? filtered_data[0][show_output_or_employment] : 0;
+  }
+
+  setColorScale(max_value);
+  addMapLegend(max_value);
+  geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
+};
+
+function handleRadioOutputClick(e) {
+
+  show_output_or_employment = "output";
+
+  updateMapData();
+
+  let max_value;
+  if(current_zoom_level === "national") {
+    let curr_values;
+    curr_values = mapData.map(d => d.output);
+    max_value = Math.max(...curr_values);
+  }
+  else if(current_zoom_level === "state") {
+    max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
+  }
+  else {
+    let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
+    max_value = filtered_data.length > 0 ? filtered_data[0][show_output_or_employment] : 0;
+  }
+
+  setColorScale(max_value);
+  addMapLegend(max_value);
+  geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
+};
 
 var info;
 function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
@@ -780,6 +954,31 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     hideAllCheckboxes();
     zoomToNational();
   }
+
+
+  let measure_control = L.control({position: 'topright'});
+  measure_control.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'measure_controls');
+    var label_employment = L.DomUtil.create('label', '', div);
+    label_employment.innerHTML = '<input type="radio" id="radio_employment" value="Employment" name="economic_measure" checked/>Employment';
+    var label_output = L.DomUtil.create('label', '', div);
+    label_output.innerHTML = '<input type="radio" id="radio_output" value="Output" name="economic_measure"/>Economic Output';
+    return div;
+  };
+  measure_control.addTo(map);
+
+  document.getElementsByClassName('measure_controls')[0].onclick = function(e) {
+    // Stop event propagation if the user has clicked within the measure_controls div
+    L.DomEvent.stopPropagation(e);
+  }
+
+  document.getElementById('radio_output').addEventListener('change', function(e) {
+    handleRadioOutputClick(e);
+  });
+
+  document.getElementById('radio_employment').addEventListener('change', function(e) {
+    handRadioEmploymentClick(e);
+  });
 
   var popup = L.popup({autoPan: false,
                        keepInView: true,
@@ -850,10 +1049,9 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
-  map.setView([35.8, -96], 4.3);
+  map.setView([36.8, -96], 4.2);
 
   map.on('click', function(e) {
-
     // Find state polygons containing the point
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
     
@@ -918,7 +1116,7 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
       }
       else {
         if((current_zoom_level === "state" && stateName === current_state) ||
-           (current_zoom_level === "district" && districtNumber === current_geography)) {
+           (current_zoom_level === "district" && stateName === current_state && districtNumber === current_geography)) {
 
           tooltipText = `<b>${stateName} - District ${districtNumber}</b>`;
           let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
@@ -997,25 +1195,86 @@ function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
   info.addTo(map);
 }
 
-function updateProgramCheckboxes() {
-      // Get unique program names
-      let program_names = full_data;
-      
-      if(selected_projects.length > 0) {
-        program_names = program_names.filter(d => selected_projects.includes(d.project));
-      }
+function updateAgencyCheckboxes() {
 
-      if(current_zoom_level === "national") {
-        program_names= program_names.map(d => d.program);
-      }
-      else if(current_zoom_level === "state") {
-        program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
-      }
-      else {
-        program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
-      }
-      program_names = [...new Set(program_names)];
-      program_names.sort();
+  let agency_names = agency_program_crosswalk;
+
+
+  if(selected_programs.length > 0) {
+    agency_names = agency_names.filter(d => selected_programs.includes(d.program));
+  }
+
+  let program_names = full_data;
+      
+  if(selected_projects.length > 0) {
+    program_names = program_names.filter(d => selected_projects.includes(d.project));
+  }
+
+  if(current_zoom_level === "national") {
+    program_names= program_names.map(d => d.program);
+  }
+  else if(current_zoom_level === "state") {
+    program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
+  }
+  else {
+    program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
+  }
+  agency_names = agency_names.filter(d => program_names.includes(d.program));
+
+  agency_names = [...new Set(agency_names.map(d => d.agency))];
+  agency_names.sort();
+
+
+  let agency_checkboxes_group = d3.select("#agency_checkboxes");
+  agency_checkboxes_group.selectAll("div").remove();
+
+  let joined_divs = agency_checkboxes_group.selectAll("input")
+    .data(agency_names)
+    .join("div");
+
+  joined_divs.append("input")
+    .attr("class", "agency_checkbox")
+    .attr("type", "checkbox")
+    .attr("id", (d,i) => "agency" + i)
+    .attr("value", (d,i) => d)
+    .attr("checked", (d,i) => selected_agencies.includes(d) ? "checked" : null);
+  joined_divs.append("label")
+    .attr("for", (d,i) => "agency" + i)
+    .text((d,i) => d);
+
+  document.querySelectorAll('#agency_checkboxes input[type="checkbox"]').forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+          updateAgencySelectedValues();
+      });
+  });
+
+}
+
+function updateProgramCheckboxes() {
+  // Get unique program names
+  let program_names = full_data;
+      
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    program_names = program_names.filter(d => induced_programs.includes(d.program));
+  }
+
+  if(selected_projects.length > 0) {
+    program_names = program_names.filter(d => selected_projects.includes(d.project));
+  }
+
+  if(current_zoom_level === "national") {
+    program_names= program_names.map(d => d.program);
+  }
+  else if(current_zoom_level === "state") {
+    program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
+  }
+  else {
+    program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
+  }
+  program_names = [...new Set(program_names)];
+  program_names.sort();
 
       let program_objects = [{program_acronym: "idp", program_name: "Industrial Demonstrations Program"},
                              {program_acronym: "dv", program_name: "Domestic Vehicles Grant Program"},
@@ -1052,12 +1311,18 @@ function updateProgramCheckboxes() {
 }
 
 function updateProjectCheckboxes() {
-      /* Start by setting project_names to be the full dataset
-         with REAP excluded (because REAP is not modeled at
-         the project level and all of its project values are
-         blank) */
-      let project_names = full_data.filter(d => d.program != "reap");
+  /* Start by setting project_names to be the full dataset
+     with REAP excluded (because REAP is not modeled at
+     the project level and all of its project values are
+     blank) */
+  let project_names = full_data.filter(d => d.program != "reap");
       
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    project_names = project_names.filter(d => induced_programs.includes(d.program));
+  }
+
       if(selected_programs.length > 0) {
         project_names = project_names.filter(d => selected_programs.includes(d.program));
       }
@@ -1102,6 +1367,12 @@ function updateProjectCheckboxes() {
 function updateStateCheckboxes() {
 
   let state_names = full_data;
+
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    state_names = state_names.filter(d => induced_programs.includes(d.program));
+  }
 
   if(selected_programs.length > 0) {
     state_names = state_names.filter(d => selected_programs.includes(d.program));
@@ -1148,6 +1419,12 @@ function updateStateCheckboxes() {
 
 function updateDistrictCheckboxes() {
   let district_names = full_data;
+
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    district_names = district_names.filter(d => induced_programs.includes(d.program));
+  }
 
   if(selected_programs.length > 0) {
     district_names = district_names.filter(d => selected_programs.includes(d.program));
@@ -1223,278 +1500,238 @@ function drawVisualization() {
       // Store the IMPLAN industry codes
       implan_industry_codes = loaded_codes_data;
 
-      // Update the map data
-      updateMapData();
+      d3.csv("./agency_program_crosswalk.csv").then(function(loaded_agency_crosswalk_data) {
 
-      let curr_values;
-      if (show_output_or_employment == "output") {
-        curr_values = mapData.map(d => d.output);
-      }
-      else {
-        curr_values = mapData.map(d => d.employment);
-      }
-      
-      let max_value = Math.max(...curr_values);
+        // Store the agency-program crosswalk
+        agency_program_crosswalk = loaded_agency_crosswalk_data;
 
-      setColorScale(max_value);
-      //addMapLegend(max_value);
+        // Update the map data
+        updateMapData();
 
-      updateProgramCheckboxes();
-      updateProjectCheckboxes();
-      updateStateCheckboxes();
-      updateDistrictCheckboxes();
+        let curr_values;
+        if (show_output_or_employment == "output") {
+          curr_values = mapData.map(d => d.output);
+        }
+        else {
+          curr_values = mapData.map(d => d.employment);
+        }
+        
+        let max_value = Math.max(...curr_values);
 
-      document.getElementById('radio_output').addEventListener('change', function() {
-          show_output_or_employment = "output";
+        setColorScale(max_value);
+        //addMapLegend(max_value);
 
-          updateMapData();
-
-          let max_value;
-          if(current_zoom_level === "national") {
-            let curr_values;
-            curr_values = mapData.map(d => d.output);
-            max_value = Math.max(...curr_values);
-          }
-          else if(current_zoom_level === "state") {
-            max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
-          }
-          else {
-            let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
-            max_value = filtered_data[0][show_output_or_employment];
-          }
-
-          setColorScale(max_value);
-          d3.select(".legend").remove();
-          addMapLegend(max_value);
-          geojson.setStyle(style_states);
-          geojson_districts.setStyle(style_districts);
-      });
-
-      document.getElementById('radio_employment').addEventListener('change', function() {
-          show_output_or_employment = "employment";
-
-          updateMapData();
-
-          let max_value;
-          if(current_zoom_level === "national") {
-            let curr_values;
-            curr_values = mapData.map(d => d.employment);
-            max_value = Math.max(...curr_values);
-          }
-          else if(current_zoom_level === "state") {
-            max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
-          }
-          else {
-            let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
-            max_value = filtered_data[0][show_output_or_employment];
-          }
-
-          setColorScale(max_value);
-          d3.select(".legend").remove();
-          addMapLegend(max_value);
-          geojson.setStyle(style_states);
-          geojson_districts.setStyle(style_districts);
-      });
-
-      document.getElementById('program_checkboxes_filter').addEventListener('input', function() {
-        let search_text = this.value.toUpperCase();
-        document.querySelectorAll('#program_checkboxes label').forEach(function(label) { 
-          label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
-        });
-      });
-
-      document.getElementById('project_checkboxes_filter').addEventListener('input', function() {
-        let search_text = this.value.toUpperCase();
-        document.querySelectorAll('#project_checkboxes label').forEach(function(label) { 
-          label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
-        });
-      });
-
-      document.getElementById('state_checkboxes_filter').addEventListener('input', function() {
-        let search_text = this.value.toUpperCase();
-        document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
-          label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
-        });
-      });
-
-      document.getElementById('district_checkboxes_filter').addEventListener('input', function() {
-        let search_text = this.value.toUpperCase();
-        document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
-          label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
-        });
-      });
-
-      updateTableData();
-      updateTable();
-
-      // Add click handler for download button
-      document.getElementById('downloadCSV').onclick = function() {
-        // Create CSV content
-        const headers = ['Industry', 'Employment', 'Output'];
-        const csvContent = [
-          headers.join(','),
-          ...tableData.map(row => [
-            `"${row.industry_desc}"`,
-            row.employment,
-            row.output
-          ].join(','))
-        ].join('\n');
-
-        // Create blob and download
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        const geography_string = current_zoom_level === "district" ? current_state.toLowerCase().replace(/\s+/g, '_') + '-' + current_geography.toLowerCase().replace(/\s+/g, '_') : current_geography.toLowerCase().replace(/\s+/g, '_');
-        link.setAttribute('download', `economic_impact_${geography_string}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}_${table_is_filtered ? "selectedindustries" : "allindustries"}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
-
-      // Add click handler for the clear filters button
-      document.getElementById('clear_button').onclick = function() {
-        hideAllCheckboxes();
-
-        selected_programs = [];
-        selected_projects = [];
-
-        d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(2)").text("For all programs");
-        d3.select(".industry_breakdown_table div:nth-child(2) div:nth-child(3)").text("For all projects");
-
-        zoomToNational();
-
+        updateAgencyCheckboxes();
         updateProgramCheckboxes();
         updateProjectCheckboxes();
         updateStateCheckboxes();
         updateDistrictCheckboxes();
-      }
 
-      // Add handler for pressing enter within the filter text input
-      document.getElementById('table_filter_phrase').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
+        document.getElementById('program_checkboxes_filter').addEventListener('input', function() {
+          let search_text = this.value.toUpperCase();
+          document.querySelectorAll('#program_checkboxes label').forEach(function(label) { 
+            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+          });
+        });
+
+        document.getElementById('project_checkboxes_filter').addEventListener('input', function() {
+          let search_text = this.value.toUpperCase();
+          document.querySelectorAll('#project_checkboxes label').forEach(function(label) { 
+            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+          });
+        });
+
+        document.getElementById('state_checkboxes_filter').addEventListener('input', function() {
+          let search_text = this.value.toUpperCase();
+          document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
+            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+          });
+        });
+
+        document.getElementById('district_checkboxes_filter').addEventListener('input', function() {
+          let search_text = this.value.toUpperCase();
+          document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
+            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+          });
+        });
+
+        updateTableData();
+        updateTable();
+
+        // Add click handler for download button
+        document.getElementById('downloadCSV').onclick = function() {
+          // Create CSV content
+          const headers = ['Industry', 'Employment', 'Output'];
+          const csvContent = [
+            headers.join(','),
+            ...tableData.map(row => [
+              `"${row.industry_desc}"`,
+              row.employment,
+              row.output
+            ].join(','))
+          ].join('\n');
+
+          // Create blob and download
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          const geography_string = current_zoom_level === "district" ? current_state.toLowerCase().replace(/\s+/g, '_') + '-' + current_geography.toLowerCase().replace(/\s+/g, '_') : current_geography.toLowerCase().replace(/\s+/g, '_');
+          link.setAttribute('download', `economic_impact_${geography_string}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}_${table_is_filtered ? "selectedindustries" : "allindustries"}.csv`);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
+        // Add click handler for the clear filters button
+        document.getElementById('clear_button').onclick = function() {
+          hideAllCheckboxes();
+
+          selected_agencies = [];
+          selected_programs = [];
+          selected_projects = [];
+
+          d3.select(".industry_breakdown_table #table_agencies_label").text("For all agencies");
+          d3.select(".industry_breakdown_table #table_programs_label").text("For all programs");
+          d3.select(".industry_breakdown_table #table_projects_label").text("For all projects");
+
+          zoomToNational();
+
+          updateAgencyCheckboxes();
+          updateProgramCheckboxes();
+          updateProjectCheckboxes();
+          updateStateCheckboxes();
+          updateDistrictCheckboxes();
+        }
+
+        // Add handler for pressing enter within the filter text input
+        document.getElementById('table_filter_phrase').addEventListener('keydown', function(event) {
+          if (event.key === 'Enter') {
+            table_is_filtered = true;
+            let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
+            updateTableData();
+            tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
+            updateTable();
+          }
+        });
+
+        // Add click handler for filter table button
+        document.getElementById('filterTable').onclick = function() {
           table_is_filtered = true;
           let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
           updateTableData();
           tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
           updateTable();
-        }
-      });
+        };
 
-      // Add click handler for filter table button
-      document.getElementById('filterTable').onclick = function() {
-        table_is_filtered = true;
-        let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
-        updateTableData();
-        tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
-        updateTable();
-      };
+        // Add click handler for clear table filter button
+        document.getElementById('clearTableFilter').onclick = function() {
+          table_is_filtered = false;
+          document.getElementById('table_filter_phrase').value = "";
+          updateTableData();
+          updateTable();
+        };
 
-      // Add click handler for clear table filter button
-      document.getElementById('clearTableFilter').onclick = function() {
-        table_is_filtered = false;
-        document.getElementById('table_filter_phrase').value = "";
-        updateTableData();
-        updateTable();
-      };
-
-      // Add a click handler for the employment header in the table
-      document.getElementById('industry_header').onclick = function() {
-        document.getElementById('employment_header').classList.remove("ascending");
-        document.getElementById('employment_header').classList.remove("descending");
-        document.getElementById('output_header').classList.remove("ascending");
-        document.getElementById('output_header').classList.remove("descending");
-
-        if(tableSortVariable === "industry" && tableSortDirection === "ascending") {
-          // Sort the table data by industry in ascending order
-          tableData.sort((a, b) => (b.industry_desc.localeCompare(a.industry_desc) === 0 ? b.employment - a.employment : b.industry_desc.localeCompare(a.industry_desc)));
-          tableSortDirection = "descending";
-          document.getElementById('industry_header').classList.remove("ascending");
-          d3.select("#industry_header").classed("descending", "true");
-        }
-        else {
-          tableData.sort((a, b) => (a.industry_desc.localeCompare(b.industry_desc) === 0 ? a.employment - b.employment : a.industry_desc.localeCompare(b.industry_desc)));
-          tableSortDirection = "ascending";
-          document.getElementById('industry_header').classList.remove("descending");
-          d3.select("#industry_header").classed("ascending", "true");
-        }
-        tableSortVariable = "industry";
-        updateTable();
-      }
-
-      // Add a click handler for the employment header in the table
-      document.getElementById('employment_header').onclick = function() {
-        document.getElementById('industry_header').classList.remove("ascending");
-        document.getElementById('industry_header').classList.remove("descending");
-        document.getElementById('output_header').classList.remove("ascending");
-        document.getElementById('output_header').classList.remove("descending");
-
-        if(tableSortVariable === "employment" && tableSortDirection === "descending") {
-          // Sort the table data by employment in ascending order
-          tableData.sort((a, b) => (a.employment - b.employment === 0 ? a.output - b.output : a.employment - b.employment));
-          tableSortDirection = "ascending";
-          document.getElementById('employment_header').classList.remove("descending");
-          d3.select("#employment_header").classed("ascending", "true");
-        }
-        else {
-          tableData.sort((a, b) => (b.employment - a.employment === 0 ? b.output - a.output : b.employment - a.employment));
-          tableSortDirection = "descending";
+        // Add a click handler for the employment header in the table
+        document.getElementById('industry_header').onclick = function() {
           document.getElementById('employment_header').classList.remove("ascending");
-          d3.select("#employment_header").classed("descending", "true");
-        }
-        tableSortVariable = "employment";
-        updateTable();
-      }
-
-      // Add a click handler for the output header in the table
-      document.getElementById('output_header').onclick = function() {
-        document.getElementById('industry_header').classList.remove("ascending");
-        document.getElementById('industry_header').classList.remove("descending");
-        document.getElementById('employment_header').classList.remove("ascending");
-        document.getElementById('employment_header').classList.remove("descending");
-
-        if(tableSortVariable === "output" && tableSortDirection === "descending") {
-          // Sort the table data by output in ascending order
-          tableData.sort((a, b) => (a.output - b.output === 0 ? a.employment - b.employment : a.output - b.output));
-          tableSortDirection = "ascending";
-          document.getElementById('output_header').classList.remove("descending");
-          d3.select("#output_header").classed("ascending", "true");
-        }
-        else {
-          tableData.sort((a, b) => (b.output - a.output === 0 ? b.employment - a.employment : b.output - a.output));
-          tableSortDirection = "descending";
+          document.getElementById('employment_header').classList.remove("descending");
           document.getElementById('output_header').classList.remove("ascending");
-          d3.select("#output_header").classed("descending", "true");
+          document.getElementById('output_header').classList.remove("descending");
+
+          if(tableSortVariable === "industry" && tableSortDirection === "ascending") {
+            // Sort the table data by industry in ascending order
+            tableData.sort((a, b) => (b.industry_desc.localeCompare(a.industry_desc) === 0 ? b.employment - a.employment : b.industry_desc.localeCompare(a.industry_desc)));
+            tableSortDirection = "descending";
+            document.getElementById('industry_header').classList.remove("ascending");
+            d3.select("#industry_header").classed("descending", "true");
+          }
+          else {
+            tableData.sort((a, b) => (a.industry_desc.localeCompare(b.industry_desc) === 0 ? a.employment - b.employment : a.industry_desc.localeCompare(b.industry_desc)));
+            tableSortDirection = "ascending";
+            document.getElementById('industry_header').classList.remove("descending");
+            d3.select("#industry_header").classed("ascending", "true");
+          }
+          tableSortVariable = "industry";
+          updateTable();
         }
-        tableSortVariable = "output";
-        updateTable();
-      }
 
-      document.body.addEventListener('click', function(e) {
-        if (!(e.target.classList.contains('overSelect') ||
-              e.target.nodeName === "LABEL" ||
-              e.target.classList.contains('program_checkbox') ||
-              e.target.classList.contains('project_checkbox') ||
-              e.target.classList.contains('filter_for_filter'))) {
-          hideAllCheckboxes();
+        // Add a click handler for the employment header in the table
+        document.getElementById('employment_header').onclick = function() {
+          document.getElementById('industry_header').classList.remove("ascending");
+          document.getElementById('industry_header').classList.remove("descending");
+          document.getElementById('output_header').classList.remove("ascending");
+          document.getElementById('output_header').classList.remove("descending");
+
+          if(tableSortVariable === "employment" && tableSortDirection === "descending") {
+            // Sort the table data by employment in ascending order
+            tableData.sort((a, b) => (a.employment - b.employment === 0 ? a.output - b.output : a.employment - b.employment));
+            tableSortDirection = "ascending";
+            document.getElementById('employment_header').classList.remove("descending");
+            d3.select("#employment_header").classed("ascending", "true");
+          }
+          else {
+            tableData.sort((a, b) => (b.employment - a.employment === 0 ? b.output - a.output : b.employment - a.employment));
+            tableSortDirection = "descending";
+            document.getElementById('employment_header').classList.remove("ascending");
+            d3.select("#employment_header").classed("descending", "true");
+          }
+          tableSortVariable = "employment";
+          updateTable();
         }
-      });
 
-      // Load the state outlines
-      d3.json("./states_outlines.json").then(function(statesOutlines) {
+        // Add a click handler for the output header in the table
+        document.getElementById('output_header').onclick = function() {
+          document.getElementById('industry_header').classList.remove("ascending");
+          document.getElementById('industry_header').classList.remove("descending");
+          document.getElementById('employment_header').classList.remove("ascending");
+          document.getElementById('employment_header').classList.remove("descending");
 
-        // Load the congressional district outlines
-        d3.json("./congressional_districts_outlines.json").then(function(congressionalDistrictsOutlines) {
+          if(tableSortVariable === "output" && tableSortDirection === "descending") {
+            // Sort the table data by output in ascending order
+            tableData.sort((a, b) => (a.output - b.output === 0 ? a.employment - b.employment : a.output - b.output));
+            tableSortDirection = "ascending";
+            document.getElementById('output_header').classList.remove("descending");
+            d3.select("#output_header").classed("ascending", "true");
+          }
+          else {
+            tableData.sort((a, b) => (b.output - a.output === 0 ? b.employment - a.employment : b.output - a.output));
+            tableSortDirection = "descending";
+            document.getElementById('output_header').classList.remove("ascending");
+            d3.select("#output_header").classed("descending", "true");
+          }
+          tableSortVariable = "output";
+          updateTable();
+        }
 
-          // Hide the "Loading..." message
-          document.getElementById("loading_message").style.display = "none";
+        document.body.addEventListener('click', function(e) {
+          if (!(e.target.classList.contains('overSelect') ||
+                e.target.nodeName === "LABEL" ||
+                e.target.classList.contains('agency_checkbox') ||
+                e.target.classList.contains('program_checkbox') ||
+                e.target.classList.contains('project_checkbox') ||
+                e.target.classList.contains('filter_for_filter'))) {
+            hideAllCheckboxes();
+          }
+        });
 
-          // Draw the map
-          draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines);
+        // Load the state outlines
+        d3.json("./states_outlines.json").then(function(statesOutlines) {
 
-          // Draw the legend
-          addMapLegend(max_value);
+          // Load the congressional district outlines
+          d3.json("./congressional_districts_outlines.json").then(function(congressionalDistrictsOutlines) {
+
+            // Hide the "Loading..." message
+            document.getElementById("loading_message").style.display = "none";
+
+            // Draw the map
+            draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines);
+
+            // Draw the legend
+            addMapLegend(max_value);
+
+          });
 
         });
 

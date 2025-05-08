@@ -7,7 +7,7 @@ body {
   width: 100%;
   max-width: 1000px;
   margin: 20px auto 0px auto;
-  height: 72px;
+  height: 40px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -15,12 +15,13 @@ body {
 }
 
 .measure_controls {
-  width: 130px;
-  height: 50px;
+  width: 150px;
+  height: 45px;
   padding: 10px;
   background-color: #f5f5f5;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-family: "Inter", sans-serif;
 }
 
 .measure_controls label {
@@ -28,7 +29,7 @@ body {
   align-items: center;
   margin-bottom: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   color: #444;
 }
 
@@ -56,7 +57,7 @@ body {
   content: "Total job-years at risk";
   position: absolute;
   min-width: 100px;
-  top: 90px;
+  top: 70px;
   font-family: "Inter", sans-serif;
   background-color: #fafafa;
   border-radius: 5px;
@@ -69,7 +70,7 @@ body {
   content: "Total economic activity at risk";
   position: absolute;
   min-width: 100px;
-  top: 90px;
+  top: 70px;
   font-family: "Inter", sans-serif;
   background-color: #fafafa;
   border-radius: 5px;
@@ -115,6 +116,10 @@ body {
     font-size: 14px;
     text-align: center;
     font-weight: bold;
+}
+
+div.leaflet-top.leaflet-right > div {
+  margin: 20px 20px 0px 0px;
 }
 
 .leaflet-bottom .info.leaflet-control,
@@ -167,31 +172,29 @@ body {
   color: #444;
 }
 
-.multiselect {
-  margin-top: 35px;
-  width: 160px;
+.multiselect:nth-child(1) {
+  width: 175px;
+}
+
+.multiselect:nth-child(2) {
+  width: 170px;
 }
 
 .multiselect:nth-child(3) {
-  width: 155px;
+  width: 160px;
 }
 
 .multiselect:nth-child(4) {
-  width: 147px;
+  width: 130px;
 }
 
 .multiselect:nth-child(5) {
-  width: 120px;
-}
-
-.multiselect:nth-child(6) {
-  width: 130px;
+  width: 145px;
 }
 
 .multiselect input {
   display: none;
   position: relative;
-  width: 140px;
   height: 30px;
   margin: 5px 0px 5px 0px;
   padding: 0px 10px;
@@ -206,20 +209,24 @@ body {
   -moz-appearance: none;
 }
 
+.multiselect input#agency_checkboxes_filter {
+  width: 155px;
+}
+
 .multiselect input#program_checkboxes_filter {
-  width: 135px;
+  width: 150px;
 }
 
 .multiselect input#project_checkboxes_filter {
-  width: 127px;
+  width: 140px;
 }
 
 .multiselect input#state_checkboxes_filter {
-  width: 100px;
+  width: 110px;
 }
 
 .multiselect input#district_checkboxes_filter {
-  width: 110px;
+  width: 125px;
 }
 
 .selectBox {
@@ -234,7 +241,7 @@ body {
   padding: 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-family: "Inter", sans-serif;
   color: #444;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -324,13 +331,12 @@ body {
 }
 
 #clear_button {
-  width: 85px;
-  margin-top: 35px;
+  width: 90px;
   background-color: #1176b2;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   padding: 10px;
-  font-size: 12px;
+  font-size: 14px;
   font-family: "Inter", sans-serif;
   color: white;
   text-align: center;
