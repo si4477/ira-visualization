@@ -1,11 +1,18 @@
 /* This file contains the code to create the IRA
-   viusalization, including generating the map,
-   the table, and the controls, as well as
-   implementing all filtering logic and the
-   ability to dynamically download the table
-   data. */
+   funding freeze viusalization, including
+   generating the map, the table, and the
+   controls, as well as implementing all
+   filtering logic and the ability to
+   dynamically download the table data. */
 
-// Initialize the Leaflet map
+
+
+/*
+ *  Define global variables
+ */
+
+/* Initialize the Leaflet map and disable
+   various zooming/dragging functionalities */
 var map = L.map('leaflet_map', {
     zoomControl: false,
     boxZoom: false,
@@ -17,37 +24,45 @@ var map = L.map('leaflet_map', {
     attributionControl: false
   }).setView([36.8, -96], 4.2);
 
-// Call the function to render the visualization
-drawVisualization();
-
-// Show the employment values on the map by default
+/* Define a variable to track whether the map is
+   showing employment or output; show the employment
+   values on the map by default */
 var show_output_or_employment = "employment";
 
-/* Track whether the program, project,
-   state, and district drop-down menus
-   are expanded and visible */
+/* Track whether the agency, program, project,
+   state, and district drop-down menus are
+   expanded and visible */
 var agency_expanded = false;
 var program_expanded = false;
 var project_expanded = false;
 var state_expanded = false;
 var district_expanded = false;
 
-/* Track the currently selected programs
-   and projects */
+/* Track the currently selected agencies, programs
+   and projects (more than one option can be
+   selected within each of these categories */
 var selected_agencies = [];
 var selected_programs = [];
 var selected_projects = [];
 
-// Set the current zoom to "United States"
+/* Define a variable to track the current zoom
+   level of the map, which can be one of
+   "national", "state", or "district"; set
+   the default to national zoom */
+var current_zoom_level = "national";
+
+/* Define variables to hold information about
+   the currently selected geography */
 var current_geography = "United States";
 var current_geography_code = "US";
-var current_zoom_level = "national";
 var current_state = "none";
 
-// Define a variable to store the full dataset
+/* Define a variable to store the full dataset
+   of modeling results */
 var full_data;
 
-// Define a variable to store the IMPLAN industry codes
+/* Define a variable to store the IMPLAN industry codes
+   and industry descriptions */
 var implan_industry_codes;
 
 // Define a variable to store the agency-program crosswalk
@@ -56,11 +71,45 @@ var agency_program_crosswalk;
 // Define a variable to store the color scale for the map
 var color;
 
+// Define variables to hold the GeoJSON layers in the map
 var geojson;
+var geojson_districts;
+
+// Define variables to hold the current map data
+var mapData;
+var mapDistrictsData;
+
+// Define a variable to hold a reference to the info box
+var info;
+
+// Define variable to hold the current table data
+let tableData;
+
+/* Define variables to track which variable is being used
+   to sort the table and whether it is sorted in ascending
+   or descending order */
+let tableSortVariable = "employment";
+let tableSortDirection = "descending";
 
 // Track whether the table has been filtered
 var table_is_filtered = false;
 
+
+
+/*
+ *  Draw the visualization
+ */
+
+// Call the function to render the visualization
+drawVisualization();
+
+
+
+/*
+ *  Define filter-related functions
+ */
+
+// Hide the agency checkboxes
 function hideAgencyCheckboxes() {
   document.getElementById("agency_checkboxes_filter").style.display = "none";
   document.getElementById("agency_checkboxes_filter").value = "";
@@ -71,6 +120,7 @@ function hideAgencyCheckboxes() {
   agency_expanded = false;
 }
 
+// Hide the program checkboxes
 function hideProgramCheckboxes() {
   document.getElementById("program_checkboxes_filter").style.display = "none";
   document.getElementById("program_checkboxes_filter").value = "";
@@ -81,6 +131,7 @@ function hideProgramCheckboxes() {
   program_expanded = false;
 }
 
+// Hide the project checkboxes
 function hideProjectCheckboxes() {
   document.getElementById("project_checkboxes_filter").style.display = "none";
   document.getElementById("project_checkboxes_filter").value = "";
@@ -91,6 +142,7 @@ function hideProjectCheckboxes() {
   project_expanded = false;
 }
 
+// Hide the state checkboxes
 function hideStateCheckboxes() {
   document.getElementById("state_checkboxes_filter").style.display = "none";
   document.getElementById("state_checkboxes_filter").value = "";
@@ -101,6 +153,7 @@ function hideStateCheckboxes() {
   state_expanded = false;
 }
 
+// Hide the district checkboxes
 function hideDistrictCheckboxes() {
   document.getElementById("district_checkboxes_filter").style.display = "none";
   document.getElementById("district_checkboxes_filter").value = "";
@@ -111,6 +164,7 @@ function hideDistrictCheckboxes() {
   district_expanded = false;
 }
 
+// Hide all checkboxes
 function hideAllCheckboxes() {
   hideAgencyCheckboxes();
   hideProgramCheckboxes();
@@ -119,7 +173,7 @@ function hideAllCheckboxes() {
   hideDistrictCheckboxes();
 }
 
-// Toggle the program checkboxes visibility
+// Toggle the agency checkboxes visibility
 function showAgencyCheckboxes() {
   hideProgramCheckboxes();
   hideProjectCheckboxes();
@@ -163,13 +217,18 @@ function showProjectCheckboxes() {
   // Determine if REAP is the only visible program
   let only_reap = false;
 
-  
+  /* If USDA is the only selected agency, or if REAP is the
+     only selected program, then set only_reap to true */
   if((selected_programs.length == 1 && selected_programs[0] == "reap") ||
-     (selected_agencies.length == 1 && selected_agencies[0] == "USDA")) {
+     (selected_agencies.length == 1 && selected_agencies[0] == "U.S. Department of Agriculture")) {
     only_reap = true;
   }
   
+  // If the map is zoomed to the state or district levels
   if (current_zoom_level != "national") {
+
+    /* Based on the currently selected geography, determine which
+       programs are represented */
     let program_names = full_data;
     if(current_zoom_level === "state") {
       program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
@@ -178,6 +237,9 @@ function showProjectCheckboxes() {
       program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
     }
     program_names = [...new Set(program_names)];
+
+    /* If the only program that is represented is REAP, set
+       only_reap to true */
     if(program_names.length == 1 && program_names[0] == "reap") {
       only_reap = true;
     }
@@ -207,6 +269,7 @@ function showProjectCheckboxes() {
   }
 }
 
+// Toggle the state checkboxes visibility
 function showStateCheckboxes() {
   hideAgencyCheckboxes();
   hideProgramCheckboxes();
@@ -225,6 +288,7 @@ function showStateCheckboxes() {
   }
 }
 
+// Toggle the district checkboxes visibility
 function showDistrictCheckboxes() {
   hideAgencyCheckboxes();
   hideProgramCheckboxes();
@@ -421,9 +485,12 @@ function updateDistrictSelectedValues() {
 }
 
 
-let tableData;
-let tableSortVariable = "employment";
-let tableSortDirection = "descending";
+
+/*
+ *  Define table-related functions
+ */
+
+// Update the table data
 function updateTableData() {
   let filtered_data;
   if(current_zoom_level === "national") {
@@ -537,6 +604,12 @@ function updateTable() {
 }
 
 
+
+/*
+ *  Define map-related functions
+ */
+
+// Set the color scale for the map and legend
 function setColorScale(max_value) {
   let some_impact = Number.isFinite(max_value) && max_value > 0;
   if(some_impact) {
@@ -552,8 +625,7 @@ function setColorScale(max_value) {
   }
 }
 
-var mapData;
-var mapDistrictsData;
+// Update the map data
 function updateMapData() {
   mapData = full_data;
   mapDistrictsData = full_data;
@@ -778,8 +850,6 @@ function zoomToNational() {
   current_geography_code = "US";
   current_zoom_level = "national";
   current_state = "none";
-
-
   
   updateTableData();
   updateTable();
@@ -938,7 +1008,7 @@ function handleRadioOutputClick(e) {
   geojson_districts.setStyle(style_districts);
 };
 
-var info;
+// Draw the map
 function draw_leaflet_map(statesOutlines, congressionalDistrictsOutlines) {
 
   let zoom_national_button = L.control({position: 'bottomright'});
@@ -1475,8 +1545,7 @@ function updateDistrictCheckboxes() {
 
 }
 
-
-
+// Draw the visualization
 function drawVisualization() {
 
   // Load the economic impact data
