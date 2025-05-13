@@ -187,11 +187,11 @@ div.leaflet-top.leaflet-right > div {
 }
 
 .multiselect:nth-child(4) {
-  width: 130px;
+  width: 140px;
 }
 
 .multiselect:nth-child(5) {
-  width: 145px;
+  width: 175px;
 }
 
 .multiselect input {
@@ -224,11 +224,11 @@ div.leaflet-top.leaflet-right > div {
 }
 
 .multiselect input#state_checkboxes_filter {
-  width: 110px;
+  width: 120px;
 }
 
 .multiselect input#district_checkboxes_filter {
-  width: 125px;
+  width: 155px;
 }
 
 .selectBox {

@@ -175,23 +175,19 @@ div.leaflet-top.leaflet-right > div {
 }
 
 .multiselect:nth-child(1) {
-  width: 175px;
+  width: 185px;
 }
 
 .multiselect:nth-child(2) {
-  width: 170px;
+  width: 180px;
 }
 
 .multiselect:nth-child(3) {
-  width: 160px;
+  width: 170px;
 }
 
 .multiselect:nth-child(4) {
-  width: 130px;
-}
-
-.multiselect:nth-child(5) {
-  width: 145px;
+  width: 140px;
 }
 
 .multiselect input {
@@ -212,23 +208,19 @@ div.leaflet-top.leaflet-right > div {
 }
 
 .multiselect input#agency_checkboxes_filter {
-  width: 155px;
+  width: 165px;
 }
 
 .multiselect input#program_checkboxes_filter {
-  width: 150px;
+  width: 160px;
 }
 
 .multiselect input#project_checkboxes_filter {
-  width: 140px;
+  width: 150px;
 }
 
 .multiselect input#state_checkboxes_filter {
-  width: 110px;
-}
-
-.multiselect input#district_checkboxes_filter {
-  width: 125px;
+  width: 120px;
 }
 
 .selectBox {
@@ -271,8 +263,7 @@ div.leaflet-top.leaflet-right > div {
 #agency_checkboxes,
 #program_checkboxes,
 #project_checkboxes,
-#state_checkboxes,
-#district_checkboxes {
+#state_checkboxes {
   position: relative;
   z-index: 1;
   display: none;
@@ -288,16 +279,14 @@ div.leaflet-top.leaflet-right > div {
 #agency_checkboxes input[type="checkbox"], 
 #program_checkboxes input[type="checkbox"], 
 #project_checkboxes input[type="checkbox"],
-#state_checkboxes input[type="checkbox"],
-#district_checkboxes input[type="checkbox"] {
+#state_checkboxes input[type="checkbox"] {
   display: none;
 }
 
 #agency_checkboxes label,
 #program_checkboxes label,
 #project_checkboxes label,
-#state_checkboxes label,
-#district_checkboxes label {
+#state_checkboxes label {
   display: block;
   padding: 8px 12px;
   cursor: pointer;
@@ -309,8 +298,7 @@ div.leaflet-top.leaflet-right > div {
 #agency_checkboxes label:hover,
 #program_checkboxes label:hover,
 #project_checkboxes label:hover,
-#state_checkboxes label:hover,
-#district_checkboxes label:hover {
+#state_checkboxes label:hover {
   background-color: #f0f7ff;
 }
 
@@ -325,8 +313,7 @@ div.leaflet-top.leaflet-right > div {
 .agency_checkbox:checked + label,
 .program_checkbox:checked + label,
 .project_checkbox:checked + label,
-.state_checkbox:checked + label,
-.district_checkbox:checked + label {
+.state_checkbox:checked + label {
   font-weight: 600;
   background-color: #e6f0fa;
   color: #4a90e2;
