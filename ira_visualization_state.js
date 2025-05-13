@@ -1,9 +1,9 @@
 /* This file contains the code to create the IRA
-   funding freeze viusalization, including
-   generating the map, the table, and the
-   controls, as well as implementing all
+   state-level funding freeze viusalization,
+   including generating the map, the table, and
+   the controls, as well as implementing all
    filtering logic and the ability to
-   dynamically download the table data. */
+   dynamically download the table data */
 
 
 
@@ -1449,7 +1449,7 @@ function handleRadioOutputClick(e) {
 };
 
 // Define a function to draw the map
-function drawMap(statesOutlines, congressionalDistrictsOutlines) {
+function drawMap(statesOutlines) {
 
   let zoom_national_button = L.control({position: 'bottomright'});
   zoom_national_button.onAdd = function (map) {
@@ -1514,7 +1514,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
       geojson.resetStyle(e.target);
   }
 
-  function highlightDistrictFeature(e) {
+  /*function highlightDistrictFeature(e) {
 
     if(current_zoom_level === "state") {
       var layer = e.target;
@@ -1531,7 +1531,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
 
   function resetDistrictHighlight(e) {
       geojson_districts.resetStyle(e.target);
-  }
+  }*/
 
   function onEachFeature(feature, layer) {
     layer.on({
@@ -1540,18 +1540,18 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     });
   }
 
-  function onEachDistrictFeature(feature, layer) {
+  /*function onEachDistrictFeature(feature, layer) {
     layer.on({
         mouseover: highlightDistrictFeature,
         mouseout: resetDistrictHighlight
     });
-  }
+  }*/
 
-  geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
+  /*geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
     style: style_districts,
     onEachFeature: onEachDistrictFeature,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
-  }).addTo(map);
+  }).addTo(map);*/
 
   geojson = L.geoJson(statesOutlines, {
     style: style_states,
@@ -1566,7 +1566,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
     
     // Find district polygons containing the point
-    const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
+    //const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
     if(statesAtPoint.length > 0) {
       // Extract the name of the state that was clicked
@@ -1590,18 +1590,18 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
     
     // Find district polygons containing the point
-    const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
+    //const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
     //
     let popup_latlng;
     let tooltipText = "";
 
-    if (statesAtPoint.length > 0 && districtsAtPoint.length > 0) {
+    if (statesAtPoint.length > 0) {
       const stateName = statesAtPoint[0].feature.properties.NAME;
       
       
-      const districtState = districtsAtPoint[0].feature.properties.STATE;
-      const districtNumber = districtsAtPoint[0].feature.properties.CD;
+      //const districtState = districtsAtPoint[0].feature.properties.STATE;
+      //const districtNumber = districtsAtPoint[0].feature.properties.CD;
       
       
       if(current_zoom_level === "national") {
@@ -1625,10 +1625,9 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
         popup_latlng = e.latlng;
       }
       else {
-        if((current_zoom_level === "state" && stateName === current_state) ||
-           (current_zoom_level === "district" && stateName === current_state && districtNumber === current_geography)) {
+        if((current_zoom_level === "state" && stateName === current_state)) {
 
-          tooltipText = `<b>${stateName} - District ${districtNumber}</b>`;
+          tooltipText = `<b>${stateName}</b>`;
           let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
           if(show_output_or_employment === "output") {
             if(district_data.length > 0) {
@@ -1696,9 +1695,6 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
       else if(current_zoom_level === "state") {
         this._div.innerHTML += props + '<br>Districts Impacted: ' + num_districts;
       }
-      else if(current_zoom_level === "district") {
-        this._div.innerHTML += current_state + ' - District ' + current_geography;
-      }
   };
 
   // Add control to map
@@ -1716,7 +1712,7 @@ function drawVisualization() {
 
   /* Load the economic impact data, converting the
      employment and output values to numbers */
-  d3.csv("./economic_impact_district_data.csv", (d) => {
+  d3.csv("./economic_impact_state_data.csv", (d) => {
     return {
       program: d.program,
       project: d.project,
@@ -1780,13 +1776,6 @@ function drawVisualization() {
         document.getElementById('state_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
           document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
-            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
-          });
-        });
-
-        document.getElementById('district_checkboxes_filter').addEventListener('input', function() {
-          let search_text = this.value.toUpperCase();
-          document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
             label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
           });
         });
@@ -1955,19 +1944,14 @@ function drawVisualization() {
         // Load the state outlines
         d3.json("./states_outlines.json").then(function(statesOutlines) {
 
-          // Load the congressional district outlines
-          d3.json("./congressional_districts_outlines.json").then(function(congressionalDistrictsOutlines) {
-
             // Hide the "Loading..." message
             document.getElementById("loading_message").style.display = "none";
 
             // Draw the map
-            drawMap(statesOutlines, congressionalDistrictsOutlines);
+            drawMap(statesOutlines);
 
             // Draw the legend
             addMapLegend(max_value);
-
-          });
 
         });
 

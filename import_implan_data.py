@@ -184,4 +184,20 @@ data['employment'] = data['employment'].round(4)
 data['output'] = data['output'].round(4)
 
 # Write the results to a .csv file
-data.to_csv("economic_impact_data.csv", index=False)
+data.to_csv("economic_impact_district_data.csv", index=False)
+
+# Group the rows by the combination of program, project,
+# state, and industry code, and then sum the employment
+# and output columns within those groups
+data = data.groupby(["program",
+                     "project",
+                     "state",
+                     "industry_code"]).agg({'output':'sum',
+                                            'employment':'sum'}).reset_index()
+
+# Again round the employment and output columns to 4 decimal places
+data['employment'] = data['employment'].round(4)
+data['output'] = data['output'].round(4)
+
+# Write the results to a .csv file
+data.to_csv("economic_impact_state_data.csv", index=False)
