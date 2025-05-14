@@ -375,13 +375,13 @@ function updateAgencyCheckboxes() {
   joined_divs.append("input")
     .attr("class", "agency_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "agency" + i)
+    .attr("id", (d, i) => "agency" + i)
     .attr("value", (d) => d)
     .attr("checked", (d) => selected_agencies.includes(d) ? "checked" : null);
 
   // Within the div, append a label element
   joined_divs.append("label")
-    .attr("for", (i) => "agency" + i)
+    .attr("for", (d, i) => "agency" + i)
     .text((d) => d);
 
   // Add an event listener to each checkbox
@@ -450,14 +450,14 @@ function updateProgramCheckboxes() {
   joined_divs.append("input")
     .attr("class", "program_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "program" + i)
+    .attr("id", (d, i) => "program" + i)
     .attr("value", (d) => d.program_acronym)
     .attr("checked", (d) => selected_programs.includes(d.program_acronym) ? "checked" : null);
 
   /* Within the div, append a label element (note that the
      label text is set to the full name rather than the acronym) */
   joined_divs.append("label")
-    .attr("for", (i) => "program" + i)
+    .attr("for", (d, i) => "program" + i)
     .text((d) => d.program_name);
 
   // Add an event listener to each checkbox
@@ -516,13 +516,13 @@ function updateProjectCheckboxes() {
   joined_divs.append("input")
     .attr("class", "project_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "project" + i)
+    .attr("id", (d, i) => "project" + i)
     .attr("value", (d) => d)
     .attr("checked", (d) => selected_projects.includes(d) ? "checked" : null);
 
   // Within the div, append a label element
   joined_divs.append("label")
-    .attr("for", (i) => "project" + i)
+    .attr("for", (d, i) => "project" + i)
     .text((d) => d);
 
   // Add an event listener to each checkbox
@@ -582,13 +582,13 @@ function updateStateCheckboxes() {
   joined_divs.append("input")
     .attr("class", "state_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "state" + i)
+    .attr("id", (d, i) => "state" + i)
     .attr("value", (d) => d)
     .attr("checked", () => current_zoom_level != "national" ? "checked" : null);
 
   // Within the div, append a label element
   joined_divs.append("label")
-    .attr("for", (i) => "state" + i)
+    .attr("for", (d, i) => "state" + i)
     .text((d) => d);
 
   // Add an event listener to each checkbox

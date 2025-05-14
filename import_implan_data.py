@@ -216,22 +216,25 @@ data = data.groupby(["program",
 # Import the IMPLAN LCTM modeling outputs
 lctm_data = pd.read_csv('lctm_implan_outputs.csv')
 
+# Change all values in the ProjectName column in the LCTM data
+# to be "lctm_", which will result in the program name being
+# "lctm" and all project names being blank (the project name
+# will be ignored in the visualization)
+lctm_data.loc[:, "ProjectName"] = "lctm_"
+
 # Rename the region, project, industry code,
 # output, and employment columns in-place
 lctm_data.rename(columns={"DestinationRegion": "state",
-                          "ProjectName": "project",
+                          "ProjectName": "program_project",
                           "IndustryCode": "industry_code",
                           "Output": "output",
                           "Employment": "employment"},
                  inplace=True)
 
-# Split the project column into two new columns based
-# on the dash separator (call the first column
-# "not_needed" because the characters before the
-# dash are not needed; the project names are after
-# the dash)
-lctm_data[["not_needed",
-           "project"]] = lctm_data["project"].str.split(' - ', n=1, expand=True)
+# Split the program_project column into two new columns based
+# on the underscore separator
+lctm_data[["program",
+           "project"]] = lctm_data["program_project"].str.split('_', n=1, expand=True)
 
 # Remove the text " (2023)" from the end of the state values
 lctm_data.loc[:, 'state'] = lctm_data['state'].str[:-7]
@@ -240,9 +243,6 @@ lctm_data.loc[:, 'state'] = lctm_data['state'].str[:-7]
 # "District of Columbia" so that it matches the
 # state outlines data
 lctm_data.loc[lctm_data['state'] == "District of Columbia, DC", 'state'] = "District of Columbia"
-
-# Create a column for the program name
-lctm_data['program'] = "lctm"
 
 # Keep only the columns needed for the visualization
 lctm_data = lctm_data[["program",

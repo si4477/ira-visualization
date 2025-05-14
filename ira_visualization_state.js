@@ -202,15 +202,23 @@ function toggleProgramCheckboxes() {
 // Toggle the project checkboxes visibility
 function toggleProjectCheckboxes() {
 
-  /* This variable will track whether REAP is the only
-     visible program; first set it to false */
-  let only_reap = false;
+  /* This variable will track whether REAP and/or LCTM are
+     the only visible programs; first set it to false */
+  let only_reap_lctm = false;
 
   /* If USDA is the only selected agency, or if REAP is the
-     only selected program, then set only_reap to true */
-  if((selected_agencies.length == 1 && selected_agencies[0] == "U.S. Department of Agriculture") ||
-     (selected_programs.length == 1 && selected_programs[0] == "reap")) {
-    only_reap = true;
+     only selected program, or if DOT is the only selected
+     agency, or if it LCTM is the only selected program, or
+     if USDA/DOT are the only selected agencies, or if
+     REAP/LCTM are the only selected programs, then set
+     only_reap_lctm to true */
+  if((selected_agencies.length == 1 && selected_agencies[0] === "U.S. Department of Agriculture") ||
+     (selected_programs.length == 1 && selected_programs[0] === "reap") ||
+     (selected_agencies.length == 1 && selected_agencies[0] === "U.S. Department of Transportation") ||
+     (selected_programs.length == 1 && selected_programs[0] === "lctm") ||
+     (selected_agencies.length == 2 && selected_agencies.includes("U.S. Department of Agriculture") && selected_agencies.includes("U.S. Department of Transportation")) ||
+     (selected_programs.length == 2 && selected_programs.includes("reap") && selected_programs.includes("lctm"))) {
+    only_reap_lctm = true;
   }
   
   // If the map is zoomed to the state level
@@ -225,17 +233,21 @@ function toggleProjectCheckboxes() {
 
     program_names = [...new Set(program_names)];
 
-    /* If the only program that is represented is REAP, set
-       only_reap to true */
-    if(program_names.length == 1 && program_names[0] == "reap") {
-      only_reap = true;
+    /* If the only program that is represented is REAP, or if
+       the only program that is represented is LCTM, or if the
+       only two programs that are represented are REAP/LCTM,
+       then set only_reap_lctm to true */
+    if((program_names.length == 1 && program_names[0] == "reap") ||
+       (program_names.length == 1 && program_names[0] == "lctm") ||
+       (program_names.length == 2 && program_names.includes("reap") && program_names.includes("lctm"))) {
+      only_reap_lctm = true;
     }
   }
 
   /* Only toggle the project checkboxes open or closed
      if programs other than REAP are selected (because
      REAP was not modeled at the project level) */
-  if(!only_reap) {
+  if(!only_reap_lctm) {
 
     // Hide the other checkboxes
     hideAgencyCheckboxes();
@@ -330,13 +342,13 @@ function updateAgencyCheckboxes() {
   joined_divs.append("input")
     .attr("class", "agency_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "agency" + i)
+    .attr("id", (d, i) => "agency" + i)
     .attr("value", (d) => d)
     .attr("checked", (d) => selected_agencies.includes(d) ? "checked" : null);
 
   // Within the div, append a label element
   joined_divs.append("label")
-    .attr("for", (i) => "agency" + i)
+    .attr("for", (d, i) => "agency" + i)
     .text((d) => d);
 
   // Add an event listener to each checkbox
@@ -403,14 +415,14 @@ function updateProgramCheckboxes() {
   joined_divs.append("input")
     .attr("class", "program_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "program" + i)
+    .attr("id", (d, i) => "program" + i)
     .attr("value", (d) => d.program_acronym)
     .attr("checked", (d) => selected_programs.includes(d.program_acronym) ? "checked" : null);
 
   /* Within the div, append a label element (note that the
      label text is set to the full name rather than the acronym) */
   joined_divs.append("label")
-    .attr("for", (i) => "program" + i)
+    .attr("for", (d, i) => "program" + i)
     .text((d) => d.program_name);
 
   // Add an event listener to each checkbox
@@ -424,11 +436,11 @@ function updateProgramCheckboxes() {
 // Update which projects are shown within the project drop-down filter
 function updateProjectCheckboxes() {
   /* Start by setting project_names to be the full dataset
-     with REAP excluded (because REAP is not modeled at
-     the project level and all of its project values are
-     blank) */
-  let project_names = full_data.filter(d => d.program != "reap");
-      
+     with REAP and LCTM excluded (because REAP and LCTM were
+     not modeled at the project level and all of their project
+     values are blank) */
+  let project_names = full_data.filter(d => d.program != "reap" && d.program != "lctm");
+  
   // Filter based on selected agencies
   if (selected_agencies.length > 0) {
     let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
@@ -466,13 +478,13 @@ function updateProjectCheckboxes() {
   joined_divs.append("input")
     .attr("class", "project_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "project" + i)
+    .attr("id", (d, i) => "project" + i)
     .attr("value", (d) => d)
     .attr("checked", (d) => selected_projects.includes(d) ? "checked" : null);
 
   // Within the div, append a label element
   joined_divs.append("label")
-    .attr("for", (i) => "project" + i)
+    .attr("for", (d, i) => "project" + i)
     .text((d) => d);
 
   // Add an event listener to each checkbox
@@ -532,13 +544,13 @@ function updateStateCheckboxes() {
   joined_divs.append("input")
     .attr("class", "state_checkbox")
     .attr("type", "checkbox")
-    .attr("id", (i) => "state" + i)
+    .attr("id", (d, i) => "state" + i)
     .attr("value", (d) => d)
     .attr("checked", () => current_zoom_level != "national" ? "checked" : null);
 
   // Within the div, append a label element
   joined_divs.append("label")
-    .attr("for", (i) => "state" + i)
+    .attr("for", (d, i) => "state" + i)
     .text((d) => d);
 
   // Add an event listener to each checkbox
@@ -619,7 +631,7 @@ function updateProgramSelectedValues() {
   checkboxes.forEach(function(checkbox) {
     selected_programs.push(checkbox.value);
   });
-
+  
   // Update the table data and the table itself
   updateTableData();
   updateTable();

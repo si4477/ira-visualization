@@ -187,7 +187,7 @@ div.leaflet-top.leaflet-right > div {
 }
 
 .multiselect:nth-child(4) {
-  width: 140px;
+  width: 160px;
 }
 
 .multiselect input {
@@ -220,7 +220,7 @@ div.leaflet-top.leaflet-right > div {
 }
 
 .multiselect input#state_checkboxes_filter {
-  width: 120px;
+  width: 140px;
 }
 
 .selectBox {
