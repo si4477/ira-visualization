@@ -378,13 +378,14 @@ function updateProgramCheckboxes() {
 
   /* Create a crosswalk between the program acronyms and the
      full program names */
-  let program_objects = [{program_acronym: "idp", program_name: "Industrial Demonstrations Program"},
-                         {program_acronym: "dv", program_name: "Domestic Vehicles Grant Program"},
-                         {program_acronym: "ldes", program_name: "Long-Duration Energy Storage Demonstrations"},
+  let program_objects = [{program_acronym: "cm", program_name: "Carbon Management"},
                          {program_acronym: "ced", program_name: "Clean Energy Demonstration on Current and Former Mine Land"},
-                         {program_acronym: "cm", program_name: "Carbon Management"},
+                         {program_acronym: "dv", program_name: "Domestic Vehicles Grant Program"},
+                         {program_acronym: "idp", program_name: "Industrial Demonstrations Program"},
+                         {program_acronym: "ldes", program_name: "Long-Duration Energy Storage Demonstrations"},
+                         {program_acronym: "lctm", program_name: "Low Carbon Transportation Materials"},
                          {program_acronym: "reap", program_name: "Rural Energy for America Program"}];
-
+  
   // Filter the objects given the programs determined above
   program_objects = program_objects.filter(d => program_names.includes(d.program_acronym));    
 
@@ -770,7 +771,7 @@ function updateTableData() {
       output_total += curr_record.output;
       employment_total += curr_record.employment;
     }
-
+    
     // Add a new object to the table data
     new_table_data.push({"industry_desc": implan_industry_codes.filter(d => d.industry_code === industry)[0]["industry_desc"],
                          "output": Number(output_total.toFixed(4)),

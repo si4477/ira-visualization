@@ -45,6 +45,7 @@ industry_code,industry_desc
 44,"Water, sewage and other systems"
 46,Construction of new manufacturing structures
 47,Construction of new power and communication structures
+49,Construction of new highways and streets
 50,"Construction of new commercial structures, including farm structures"
 51,Construction of other new nonresidential structures
 55,Maintenance and repair construction of nonresidential structures
@@ -509,4 +510,6 @@ industry_code,industry_desc
 514,Local government passenger transit
 515,Local government electric utilities
 516,Other local government enterprises
+523,"Employment and payroll of state govt, other services"
+526,"Employment and payroll of local govt, other services"
 999,Other

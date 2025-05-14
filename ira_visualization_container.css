@@ -12,24 +12,22 @@ body {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  border: 2px solid #dadada;
-  border-radius: 8px;
 }
 
 #ira_container_selector > div {
   width: 150px;
   margin: 10px 30px;
   padding: 10px;
-  border: 2px solid white;
+  border: 2px solid #aaa;
   border-radius: 8px;
-  background-color: #1176b2;
-  color: white;
+  color: #444;
   text-align: center;
   cursor: pointer;
+  user-select: none;
 }
 
 #ira_container_selector > div:hover {
-  background-color: #5b8fc3;
+  border-color: #444;
 }
 
 #ira_visualization_iframe {

@@ -7,6 +7,17 @@ import pandas as pd
 employment_threshold = 10
 output_threshold = 100
 
+# Define a helper function to determine if a floating point
+# number is within a small tolerance of zero
+def is_zero(x, tolerance=1e-8):
+    return abs(x) < tolerance
+
+
+
+#
+# Create the district-level dataset
+#
+
 # Import the IMPLAN IDP modeling outputs
 idp_data = pd.read_csv('idp_implan_outputs.csv')
 
@@ -149,8 +160,6 @@ data['output'] = pd.to_numeric(data['output'].astype(str).str.replace(',','')).r
 # value are zero (to avoid issues related to floating point numbers,
 # the calculation checks if the values are within a tolerance
 # of zero)
-def is_zero(x, tolerance=1e-8):
-    return abs(x) < tolerance
 data = data[~(data['employment'].apply(is_zero) & data['output'].apply(is_zero))]
 
 # Extract any rows where the employment value is less than
@@ -179,12 +188,21 @@ data = pd.concat([data, data_threshold], ignore_index=True)
 # no longer needed
 del data_threshold
 
+# Sort by program, project, state, district, and industry code
+data = data.sort_values(by=['program', 'project', 'state', 'district', 'industry_code'])
+
 # Again round the employment and output columns to 4 decimal places
 data['employment'] = data['employment'].round(4)
 data['output'] = data['output'].round(4)
 
 # Write the results to a .csv file
 data.to_csv("economic_impact_district_data.csv", index=False)
+
+
+
+#
+# Create the state-level dataset
+#
 
 # Group the rows by the combination of program, project,
 # state, and industry code, and then sum the employment
@@ -194,6 +212,92 @@ data = data.groupby(["program",
                      "state",
                      "industry_code"]).agg({'output':'sum',
                                             'employment':'sum'}).reset_index()
+
+# Import the IMPLAN LCTM modeling outputs
+lctm_data = pd.read_csv('lctm_implan_outputs.csv')
+
+# Rename the region, project, industry code,
+# output, and employment columns in-place
+lctm_data.rename(columns={"DestinationRegion": "state",
+                          "ProjectName": "project",
+                          "IndustryCode": "industry_code",
+                          "Output": "output",
+                          "Employment": "employment"},
+                 inplace=True)
+
+# Split the project column into two new columns based
+# on the dash separator (call the first column
+# "not_needed" because the characters before the
+# dash are not needed; the project names are after
+# the dash)
+lctm_data[["not_needed",
+           "project"]] = lctm_data["project"].str.split(' - ', n=1, expand=True)
+
+# Remove the text " (2023)" from the end of the state values
+lctm_data.loc[:, 'state'] = lctm_data['state'].str[:-7]
+
+# Rename the state "District of Columbia, DC" to
+# "District of Columbia" so that it matches the
+# state outlines data
+lctm_data.loc[lctm_data['state'] == "District of Columbia, DC", 'state'] = "District of Columbia"
+
+# Create a column for the program name
+lctm_data['program'] = "lctm"
+
+# Keep only the columns needed for the visualization
+lctm_data = lctm_data[["program",
+                       "project",
+                       "state",
+                       "industry_code",
+                       "employment",
+                       "output"]]
+
+# Round the employment and output columns to 4 decimal places (remove any
+# commas prior to rounding, and before that, convert to string in case
+# any program's modeling output had no commas, in which case the values
+# will be numeric)
+lctm_data['employment'] = pd.to_numeric(lctm_data['employment'].astype(str).str.replace(',','')).round(4)
+lctm_data['output'] = pd.to_numeric(lctm_data['output'].astype(str).str.replace(',','')).round(4)
+
+# Delete any rows where both the employment value and the output
+# value are zero (to avoid issues related to floating point numbers,
+# the calculation checks if the values are within a tolerance
+# of zero)
+lctm_data = lctm_data[~(lctm_data['employment'].apply(is_zero) & lctm_data['output'].apply(is_zero))]
+
+# Extract any rows where the employment value is less than
+# the threshold and the output value is also less than the
+# threshold; remove these rows from the original dataset
+data_threshold = lctm_data[(lctm_data['employment'] < employment_threshold) & (lctm_data['output'] < output_threshold)].copy()
+lctm_data = lctm_data[(lctm_data['employment'] >= employment_threshold) | (lctm_data['output'] >= output_threshold)]
+
+# Group the extracted rows by the combination of program,
+# project, and state, and then sum the employment
+# and output columns within those groups
+data_threshold = data_threshold.groupby(["program",
+                                         "project",
+                                         "state"]).agg({'output':'sum',
+                                                        'employment':'sum'}).reset_index()
+
+# These aggregated rows represent a newly created "Other"
+# industry, which has code 999; add a column with that code
+data_threshold['industry_code'] = "999"
+
+# Concatenate the new rows with the original dataset
+lctm_data = pd.concat([lctm_data, data_threshold], ignore_index=True)
+
+# Delete the data_threshold variable because it is
+# no longer needed
+del data_threshold
+
+# Concatenate the LCTM data with the original dataset
+data = pd.concat([data, lctm_data], ignore_index=True)
+
+# Delete the lctm_data variable because it is no longer needed
+del lctm_data
+
+# Sort by program, project, state, and industry code
+data = data.sort_values(by=['program', 'project', 'state', 'industry_code'])
 
 # Again round the employment and output columns to 4 decimal places
 data['employment'] = data['employment'].round(4)
