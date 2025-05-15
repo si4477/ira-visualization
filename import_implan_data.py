@@ -236,40 +236,73 @@ lctm_data.rename(columns={"DestinationRegion": "state",
 lctm_data[["program",
            "project"]] = lctm_data["program_project"].str.split('_', n=1, expand=True)
 
+# Import the IMPLAN EIR modeling outputs
+eir_data = pd.read_csv('eir_implan_outputs.csv')
+
+# Rename the region, project, industry code,
+# output, and employment columns in-place
+eir_data.rename(columns={"DestinationRegion": "state",
+                         "ProjectName": "program_project",
+                         "IndustryCode": "industry_code",
+                         "Output": "output",
+                         "Employment": "employment"},
+                inplace=True)
+
+# Split the program_project column into two new columns based
+# on the underscore separator
+eir_data[["program",
+          "project"]] = eir_data["program_project"].str.split('_', n=1, expand=True)
+
+# In the EIR data, the program_project column contains the
+# project name first followed by information that is not
+# needed; therefore, copy the values in the program column
+# into the project column and rewrite the values in the
+# program column with "eir"
+eir_data['project'] = eir_data['program']
+eir_data['program'] = "eir"
+
+# Combine the LCTM and EIR data together
+state_level_data = pd.concat([lctm_data, eir_data], ignore_index=True)
+
+# Delete the variables lctm_data and eir_data because
+# they are no longer needed
+del lctm_data, eir_data
+
 # Remove the text " (2023)" from the end of the state values
-lctm_data.loc[:, 'state'] = lctm_data['state'].str[:-7]
+state_level_data.loc[:, 'state'] = state_level_data['state'].str[:-7]
 
 # Rename the state "District of Columbia, DC" to
 # "District of Columbia" so that it matches the
-# state outlines data
-lctm_data.loc[lctm_data['state'] == "District of Columbia, DC", 'state'] = "District of Columbia"
+# state outlines data (note that DC only appears
+# in the LCTM modeling outputs)
+state_level_data.loc[state_level_data['state'] == "District of Columbia, DC", 'state'] = "District of Columbia"
 
 # Keep only the columns needed for the visualization
-lctm_data = lctm_data[["program",
-                       "project",
-                       "state",
-                       "industry_code",
-                       "employment",
-                       "output"]]
+state_level_data = state_level_data[["program",
+                                     "project",
+                                     "state",
+                                     "industry_code",
+                                     "employment",
+                                     "output"]]
 
 # Round the employment and output columns to 4 decimal places (remove any
 # commas prior to rounding, and before that, convert to string in case
 # any program's modeling output had no commas, in which case the values
 # will be numeric)
-lctm_data['employment'] = pd.to_numeric(lctm_data['employment'].astype(str).str.replace(',','')).round(4)
-lctm_data['output'] = pd.to_numeric(lctm_data['output'].astype(str).str.replace(',','')).round(4)
+state_level_data['employment'] = pd.to_numeric(state_level_data['employment'].astype(str).str.replace(',','')).round(4)
+state_level_data['output'] = pd.to_numeric(state_level_data['output'].astype(str).str.replace(',','')).round(4)
 
 # Delete any rows where both the employment value and the output
 # value are zero (to avoid issues related to floating point numbers,
 # the calculation checks if the values are within a tolerance
 # of zero)
-lctm_data = lctm_data[~(lctm_data['employment'].apply(is_zero) & lctm_data['output'].apply(is_zero))]
+state_level_data = state_level_data[~(state_level_data['employment'].apply(is_zero) & state_level_data['output'].apply(is_zero))]
 
 # Extract any rows where the employment value is less than
 # the threshold and the output value is also less than the
 # threshold; remove these rows from the original dataset
-data_threshold = lctm_data[(lctm_data['employment'] < employment_threshold) & (lctm_data['output'] < output_threshold)].copy()
-lctm_data = lctm_data[(lctm_data['employment'] >= employment_threshold) | (lctm_data['output'] >= output_threshold)]
+data_threshold = state_level_data[(state_level_data['employment'] < employment_threshold) & (state_level_data['output'] < output_threshold)].copy()
+state_level_data = state_level_data[(state_level_data['employment'] >= employment_threshold) | (state_level_data['output'] >= output_threshold)]
 
 # Group the extracted rows by the combination of program,
 # project, and state, and then sum the employment
@@ -283,18 +316,19 @@ data_threshold = data_threshold.groupby(["program",
 # industry, which has code 999; add a column with that code
 data_threshold['industry_code'] = "999"
 
-# Concatenate the new rows with the original dataset
-lctm_data = pd.concat([lctm_data, data_threshold], ignore_index=True)
+# Concatenate the aggregated rows with the original dataset
+state_level_data = pd.concat([state_level_data, data_threshold], ignore_index=True)
 
 # Delete the data_threshold variable because it is
 # no longer needed
 del data_threshold
 
-# Concatenate the LCTM data with the original dataset
-data = pd.concat([data, lctm_data], ignore_index=True)
+# Concatenate the LCTM/EIR data with the aggregated
+# district-level data
+data = pd.concat([data, state_level_data], ignore_index=True)
 
-# Delete the lctm_data variable because it is no longer needed
-del lctm_data
+# Delete the state_level_data variable because it is no longer needed
+del state_level_data
 
 # Sort by program, project, state, and industry code
 data = data.sort_values(by=['program', 'project', 'state', 'industry_code'])

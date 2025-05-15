@@ -3,9 +3,9 @@
 <html lang="en">
 
   <head>
-    <title>IRA Visualization - State Level</title>
+    <title>IRA Visualization - District Level</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="ira_visualization_state.css">
+    <link rel="stylesheet" href="ira_visualization_district.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -61,6 +61,17 @@
           <div id="state_checkboxes">
           </div>
         </div>
+        <div class="multiselect">
+          <div class="selectBox" onclick="toggleDistrictCheckboxes()">
+            <select>
+              <option>Select a District</option>
+            </select>
+            <div class="overSelect"></div>
+          </div>
+          <input type="text"/ id="district_checkboxes_filter" class="filter_for_filter">
+          <div id="district_checkboxes">
+          </div>
+        </div>
         <div id="clear_button">Clear Filters</div>
       </div>
     <div id="map_container">
@@ -101,7 +112,7 @@
       </table>
     </div>
     <div class="source_acknowledgements">Note: state and congressional district outlines obtained from the <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html">U.S. Census Bureau</a>. Visualization built using <a href="https://leafletjs.com/">Leaflet</a> and <a href="https://d3js.org/">D3.js</a>.</div>
-    <script src="ira_visualization_state.js"></script>
+    <script src="ira_visualization_district.js"></script>
   </body>
 
 </html>

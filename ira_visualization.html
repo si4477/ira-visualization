@@ -6,112 +6,24 @@
     <title>IRA Visualization</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="ira_visualization.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://unpkg.com/@mapbox/leaflet-pip@latest/leaflet-pip.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   </head>
 
   <body>
-      <div id="map_controls">
-        <div class="multiselect">
-          <div class="selectBox" onclick="toggleAgencyCheckboxes()">
-            <select>
-              <option>Filter by Agency(ies)</option>
-            </select>
-            <div class="overSelect"></div>
-          </div>
-          <input type="text"/ id="agency_checkboxes_filter" class="filter_for_filter">
-          <div id="agency_checkboxes">
-          </div>
-        </div>
-        <div class="multiselect">
-          <div class="selectBox" onclick="toggleProgramCheckboxes()">
-            <select>
-              <option>Filter by Program(s)</option>
-            </select>
-            <div class="overSelect"></div>
-          </div>
-          <input type="text"/ id="program_checkboxes_filter" class="filter_for_filter">
-          <div id="program_checkboxes">
-          </div>
-        </div>
-        <div class="multiselect">
-          <div class="selectBox" onclick="toggleProjectCheckboxes()">
-            <select>
-              <option>Filter by Project(s)</option>
-            </select>
-            <div class="overSelect"></div>
-          </div>
-          <input type="text"/ id="project_checkboxes_filter" class="filter_for_filter">
-          <div id="project_checkboxes">
-          </div>
-        </div>
-        <div class="multiselect">
-          <div class="selectBox" onclick="toggleStateCheckboxes()">
-            <select>
-              <option>Select a State</option>
-            </select>
-            <div class="overSelect"></div>
-          </div>
-          <input type="text"/ id="state_checkboxes_filter" class="filter_for_filter">
-          <div id="state_checkboxes">
-          </div>
-        </div>
-        <div class="multiselect">
-          <div class="selectBox" onclick="toggleDistrictCheckboxes()">
-            <select>
-              <option>Select a District</option>
-            </select>
-            <div class="overSelect"></div>
-          </div>
-          <input type="text"/ id="district_checkboxes_filter" class="filter_for_filter">
-          <div id="district_checkboxes">
-          </div>
-        </div>
-        <div id="clear_button">Clear Filters</div>
+    <div id="ira_container_selector">
+      <div id="selector_district" class="tooltip">
+        District Level
+        <span class="tooltiptext">View the map with the district-level modeling results. This map contains results for only some modeled IRA programs, but it presents all results down to the congressional district level.</span>
       </div>
-    <div id="map_container">
-      <div id="leaflet_map"></div>
-      <div id="loading_message">Loading...</div>
+      <div id="selector_state" class="tooltip">
+        State Level
+        <span class="tooltiptext">View the map with the state-level modeling results. This map contains results for all modeled IRA programs, but it does not present any results at the congressional district level.</span>
+      </div>
     </div>
-    <div class="industry_breakdown_table">
-      <div>
-        <span>Employment and Output Impacts by Industry</span>
-      </div>
-      <div>
-        <div id="table_agencies_label">For all agencies</div>
-        <div id="table_programs_label">For all programs</div>
-        <div id="table_projects_label">For all projects</div>
-        <div id="table_geography_label">For the United States</div>
-      </div>
-      <div>
-        <label for="table_filter_phrase">Filter by industry:</label><input type="text" id="table_filter_phrase">
-        <button id="filterTable">Filter Table</button>
-        <button id="clearTableFilter">Clear Filter</button>
-      </div>
-      <div>
-        <div>
-          <div id="total_employment_impacts"></div>
-          <div id="total_output_impacts"></div>
-        </div>
-        <span><button id="downloadCSV" class="download-button">Download Table Data</button></span>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col" id="industry_header" class="industry_column">Industry</th>
-            <th scope="col" id="employment_header" class="employment_column descending">Employment (jobs)</th>
-            <th scope="col" id="output_header" class="output_column">Output ($)</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="source_acknowledgements">Note: state and congressional district outlines obtained from the <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html">U.S. Census Bureau</a>. Visualization built using <a href="https://leafletjs.com/">Leaflet</a> and <a href="https://d3js.org/">D3.js</a>.</div>
+    <iframe id="ira_visualization_iframe" src="ira_visualization_district.html"></iframe>
     <script src="ira_visualization.js"></script>
   </body>
 

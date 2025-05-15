@@ -1,9 +1,9 @@
 /* This file contains the code to create the IRA
-   state-level funding freeze viusalization,
+   district-level funding freeze viusalization,
    including generating the map, the table, and
    the controls, as well as implementing all
    filtering logic and the ability to
-   dynamically download the table data */
+   dynamically download the table data. */
 
 
 
@@ -30,12 +30,13 @@ var map = L.map('leaflet_map', {
 var show_output_or_employment = "employment";
 
 /* Track whether the agency, program, project,
-   and state drop-down menus are expanded
-   or collapsed */
+   state, and district drop-down menus are
+   expanded or collapsed */
 var agency_expanded = false;
 var program_expanded = false;
 var project_expanded = false;
 var state_expanded = false;
+var district_expanded = false;
 
 /* Track the currently selected agencies, programs
    and projects (more than one option can be
@@ -45,9 +46,9 @@ var selected_programs = [];
 var selected_projects = [];
 
 /* Define a variable to track the current zoom
-   level of the map, which can either be
-   "national" or "state"; set the default
-   to national zoom */
+   level of the map, which can be one of
+   "national", "state", or "district"; set
+   the default to national zoom */
 var current_zoom_level = "national";
 
 /* Define variables to hold information about
@@ -70,11 +71,13 @@ var agency_program_crosswalk;
 // Define a variable to store the color scale for the map
 var color;
 
-// Define a variable to hold the GeoJSON state layer in the map
+// Define variables to hold the GeoJSON layers in the map
 var geojson;
+var geojson_districts;
 
 // Define variables to hold the current map data
 var mapData;
+var mapDistrictsData;
 
 /* Define a variable to hold a reference to the information
    box in the lower-right corner of the map */
@@ -151,12 +154,24 @@ function hideStateCheckboxes() {
   state_expanded = false;
 }
 
+// Hide the district checkboxes
+function hideDistrictCheckboxes() {
+  document.getElementById("district_checkboxes_filter").style.display = "none";
+  document.getElementById("district_checkboxes_filter").value = "";
+  document.getElementById("district_checkboxes").style.display = "none";
+  document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
+    label.style.display = "block";
+  });
+  district_expanded = false;
+}
+
 // Hide all checkboxes
 function hideAllCheckboxes() {
   hideAgencyCheckboxes();
   hideProgramCheckboxes();
   hideProjectCheckboxes();
   hideStateCheckboxes();
+  hideDistrictCheckboxes();
 }
 
 // Toggle the agency checkboxes visibility
@@ -165,6 +180,7 @@ function toggleAgencyCheckboxes() {
   hideProgramCheckboxes();
   hideProjectCheckboxes();
   hideStateCheckboxes();
+  hideDistrictCheckboxes();
 
   // Show or hide the agency checkboxes
   var checkboxes_filter = document.getElementById("agency_checkboxes_filter");
@@ -185,6 +201,7 @@ function toggleProgramCheckboxes() {
   hideAgencyCheckboxes();
   hideProjectCheckboxes();
   hideStateCheckboxes();
+  hideDistrictCheckboxes();
 
   // Show or hide the program checkboxes
   var checkboxes_filter = document.getElementById("program_checkboxes_filter");
@@ -202,26 +219,18 @@ function toggleProgramCheckboxes() {
 // Toggle the project checkboxes visibility
 function toggleProjectCheckboxes() {
 
-  /* This variable will track whether REAP and/or LCTM are
-     the only visible programs; first set it to false */
-  let only_reap_lctm = false;
+  /* This variable will track whether REAP is the only
+     visible program; first set it to false */
+  let only_reap = false;
 
   /* If USDA is the only selected agency, or if REAP is the
-     only selected program, or if DOT is the only selected
-     agency, or if it LCTM is the only selected program, or
-     if USDA/DOT are the only selected agencies, or if
-     REAP/LCTM are the only selected programs, then set
-     only_reap_lctm to true */
-  if((selected_agencies.length == 1 && selected_agencies[0] === "U.S. Department of Agriculture") ||
-     (selected_programs.length == 1 && selected_programs[0] === "reap") ||
-     (selected_agencies.length == 1 && selected_agencies[0] === "U.S. Department of Transportation") ||
-     (selected_programs.length == 1 && selected_programs[0] === "lctm") ||
-     (selected_agencies.length == 2 && selected_agencies.includes("U.S. Department of Agriculture") && selected_agencies.includes("U.S. Department of Transportation")) ||
-     (selected_programs.length == 2 && selected_programs.includes("reap") && selected_programs.includes("lctm"))) {
-    only_reap_lctm = true;
+     only selected program, then set only_reap to true */
+  if((selected_agencies.length == 1 && selected_agencies[0] == "U.S. Department of Agriculture") ||
+     (selected_programs.length == 1 && selected_programs[0] == "reap")) {
+    only_reap = true;
   }
   
-  // If the map is zoomed to the state level
+  // If the map is zoomed to the state or district levels
   if (current_zoom_level != "national") {
 
     /* Based on the currently selected geography, determine which
@@ -230,29 +239,28 @@ function toggleProjectCheckboxes() {
     if(current_zoom_level === "state") {
       program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
     }
-
+    else if(current_zoom_level === "district") {
+      program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
+    }
     program_names = [...new Set(program_names)];
 
-    /* If the only program that is represented is REAP, or if
-       the only program that is represented is LCTM, or if the
-       only two programs that are represented are REAP/LCTM,
-       then set only_reap_lctm to true */
-    if((program_names.length == 1 && program_names[0] == "reap") ||
-       (program_names.length == 1 && program_names[0] == "lctm") ||
-       (program_names.length == 2 && program_names.includes("reap") && program_names.includes("lctm"))) {
-      only_reap_lctm = true;
+    /* If the only program that is represented is REAP, set
+       only_reap to true */
+    if(program_names.length == 1 && program_names[0] == "reap") {
+      only_reap = true;
     }
   }
 
   /* Only toggle the project checkboxes open or closed
      if programs other than REAP are selected (because
      REAP was not modeled at the project level) */
-  if(!only_reap_lctm) {
+  if(!only_reap) {
 
     // Hide the other checkboxes
     hideAgencyCheckboxes();
     hideProgramCheckboxes();
     hideStateCheckboxes();
+    hideDistrictCheckboxes();
 
     // Show or hide the project checkboxes
     var checkboxes_filter = document.getElementById("project_checkboxes_filter");
@@ -275,6 +283,7 @@ function toggleStateCheckboxes() {
   hideAgencyCheckboxes();
   hideProgramCheckboxes();
   hideProjectCheckboxes();
+  hideDistrictCheckboxes();
 
   // Show or hide the state checkboxes
   var checkboxes_filter = document.getElementById("state_checkboxes_filter");
@@ -286,6 +295,27 @@ function toggleStateCheckboxes() {
     state_expanded = true;
   } else {
     hideStateCheckboxes();
+  }
+}
+
+// Toggle the district checkboxes visibility
+function toggleDistrictCheckboxes() {
+  // Hide the other checkboxes
+  hideAgencyCheckboxes();
+  hideProgramCheckboxes();
+  hideProjectCheckboxes();
+  hideStateCheckboxes();
+
+  // Show or hide the district checkboxes
+  var checkboxes_filter = document.getElementById("district_checkboxes_filter");
+  var checkboxes = document.getElementById("district_checkboxes");
+  if (!district_expanded) {
+    checkboxes_filter.style.display = "block";
+    checkboxes_filter.focus();
+    checkboxes.style.display = "flex";
+    district_expanded = true;
+  } else {
+    hideDistrictCheckboxes();
   }
 }
 
@@ -319,6 +349,9 @@ function updateAgencyCheckboxes() {
   }
   else if(current_zoom_level === "state") {
     program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
+  }
+  else {
+    program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
   }
 
   // Filter agency_names based on the implicitly selected programs
@@ -383,25 +416,26 @@ function updateProgramCheckboxes() {
   else if(current_zoom_level === "state") {
     program_names = program_names.filter(d => d.state === current_geography).map(d => d.program);
   }
+  else {
+    program_names = program_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.program);
+  }
 
   // From the remaining programs, remove duplicates and sort
   program_names = [...new Set(program_names)];
   program_names.sort();
-  
+
   /* Create a crosswalk between the program acronyms and the
      full program names */
   let program_objects = [{program_acronym: "cm", program_name: "Carbon Management"},
                          {program_acronym: "ced", program_name: "Clean Energy Demonstration on Current and Former Mine Land"},
                          {program_acronym: "dv", program_name: "Domestic Vehicles Grant Program"},
-                         {program_acronym: "eir", program_name: "Energy Infrastructure Reinvestment"},
                          {program_acronym: "idp", program_name: "Industrial Demonstrations Program"},
                          {program_acronym: "ldes", program_name: "Long-Duration Energy Storage Demonstrations"},
-                         {program_acronym: "lctm", program_name: "Low Carbon Transportation Materials"},
                          {program_acronym: "reap", program_name: "Rural Energy for America Program"}];
   
   // Filter the objects given the programs determined above
   program_objects = program_objects.filter(d => program_names.includes(d.program_acronym));    
-  
+
   // Remove any existing checkboxes in the program drop-down filter
   let program_checkboxes_group = d3.select("#program_checkboxes");
   program_checkboxes_group.selectAll("div").remove();
@@ -437,11 +471,11 @@ function updateProgramCheckboxes() {
 // Update which projects are shown within the project drop-down filter
 function updateProjectCheckboxes() {
   /* Start by setting project_names to be the full dataset
-     with REAP and LCTM excluded (because REAP and LCTM were
-     not modeled at the project level and all of their project
-     values are blank) */
-  let project_names = full_data.filter(d => d.program != "reap" && d.program != "lctm");
-  
+     with REAP excluded (because REAP is not modeled at
+     the project level and all of its project values are
+     blank) */
+  let project_names = full_data.filter(d => d.program != "reap");
+      
   // Filter based on selected agencies
   if (selected_agencies.length > 0) {
     let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
@@ -460,6 +494,9 @@ function updateProjectCheckboxes() {
   }
   else if(current_zoom_level === "state") {
     project_names = project_names.filter(d => d.state === current_geography).map(d => d.project);
+  }
+  else {
+    project_names = project_names.filter(d => d.state === current_state && d.district === current_geography).map(d => d.project);
   }
 
   // From the remaining projects, remove duplicates and sort
@@ -519,7 +556,7 @@ function updateStateCheckboxes() {
 
   /* If the map is currently zoomed to the national level, extract
      the state names from the remaining data; if the map is zoomed
-     to the state level, simply set state_names equal
+     to the state or district levels, simply set state_names equal
      to the current state */
   if(current_zoom_level === "national") {
     state_names = state_names.map(d => d.state);
@@ -562,6 +599,80 @@ function updateStateCheckboxes() {
   });
 }
 
+// Update which districts are shown within the district drop-down filter
+function updateDistrictCheckboxes() {
+  // Start by setting district_names equal to the full dataset
+  let district_names = full_data;
+
+  // Filter based on selected agencies
+  if (selected_agencies.length > 0) {
+    let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
+    district_names = district_names.filter(d => induced_programs.includes(d.program));
+  }
+
+  // Further filter based on selected programs
+  if(selected_programs.length > 0) {
+    district_names = district_names.filter(d => selected_programs.includes(d.program));
+  }
+
+  // Further filter based on selected projects
+  if(selected_projects.length > 0) {
+    district_names = district_names.filter(d => selected_projects.includes(d.project));
+  }
+
+  /* Further filter district_names based on which districts are
+     being shown within the current zoom level */
+  if(current_zoom_level === "national") {
+    district_names = district_names.map(d => (d.state + " - " + d.district));
+  }
+  else if(current_zoom_level === "state") {
+    district_names = district_names.filter(d => d.state === current_state).map(d => (d.state + " - " + d.district));
+  }
+  else {
+    district_names = [current_state + " - " + current_geography];
+  }
+
+  // Remove duplicates and sort
+  district_names = [...new Set(district_names)];
+  district_names.sort();
+
+  /* If the map is currently zoomed to the state level, update the
+     information box on the map to reflect the number of districts
+     that are impacted */
+  if(current_zoom_level === "state") {
+    info.update(current_state, district_names.length);
+  }
+
+  // Remove any existing checkboxes in the district drop-down filter
+  let district_checkboxes_group = d3.select("#district_checkboxes");
+  district_checkboxes_group.selectAll("div").remove();
+
+  // Add a div for each district
+  let joined_divs = district_checkboxes_group.selectAll("div")
+    .data(district_names)
+    .join("div");
+  
+  // Within the div, append an input element
+  joined_divs.append("input")
+    .attr("class", "district_checkbox")
+    .attr("type", "checkbox")
+    .attr("id", (d,i) => "district" + i)
+    .attr("value", (d,i) => d)
+    .attr("checked", (d,i) => current_zoom_level === "district" ? "checked" : null);
+  
+  // Within the div, append a label element
+  joined_divs.append("label")
+    .attr("for", (d,i) => "district" + i)
+    .text((d,i) => d);
+
+  // Add an event listener to each checkbox
+  document.querySelectorAll('#district_checkboxes input[type="checkbox"]').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+      updateDistrictSelectedValues();
+    });
+  });
+}
+
 /* Define a helper function that determines the largest
    value currently shown on the map */
 function getMapMaxValue() {
@@ -576,8 +687,17 @@ function getMapMaxValue() {
   }
   // If the map is currently at the state level
   else if(current_zoom_level === "state") {
-    // Find the value for the currently selected state
-    max_value = Math.max(...mapData.filter(d => d.state === current_state).map(d => d[show_output_or_employment]));
+    /* Find the maximum value across all of the districts
+       within the currently selected state */
+    max_value = Math.max(...mapDistrictsData.map(d => d[show_output_or_employment]));
+  }
+  // If the map is currently at the district level
+  else {
+    // Filter the district data down to the currently selected district
+    let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
+
+    // The max value is just the value for this district
+    max_value = filtered_data[0][show_output_or_employment];
   }
 
   // Return the maximum value
@@ -606,8 +726,9 @@ function updateAgencySelectedValues() {
   // Update the legend in the map
   addMapLegend(getMapMaxValue());
 
-  // Update the coloring for the states
+  // Update the coloring for the states and districts
   geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
 
   /* Update the label above the table that lists which
      agencies are selected */
@@ -618,10 +739,11 @@ function updateAgencySelectedValues() {
     d3.select(".industry_breakdown_table #table_agencies_label").text("For all agencies");
   }
   
-  // Update the program, project, and state checkboxes
+  // Update the program, project, state, and district checkboxes
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
+  updateDistrictCheckboxes();
 }
 
 // Handle a change to which programs are selected
@@ -632,7 +754,7 @@ function updateProgramSelectedValues() {
   checkboxes.forEach(function(checkbox) {
     selected_programs.push(checkbox.value);
   });
-  
+
   // Update the table data and the table itself
   updateTableData();
   updateTable();
@@ -646,8 +768,9 @@ function updateProgramSelectedValues() {
   // Update the legend in the map
   addMapLegend(getMapMaxValue());
 
-  // Update the coloring for the states
+  // Update the coloring for the states and districts
   geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
 
   /* Get the values of all of the labels for the selected
      programs (the values in the selected_programs array
@@ -664,10 +787,11 @@ function updateProgramSelectedValues() {
     d3.select(".industry_breakdown_table #table_programs_label").text("For all programs");
   }
 
-  // Update the agency, project, and state checkboxes
+  // Update the agency, project, state, and district checkboxes
   updateAgencyCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
+  updateDistrictCheckboxes();
 }
 
 // Handle a change to which projects are selected
@@ -692,8 +816,9 @@ function updateProjectSelectedValues() {
   // Update the legend in the map
   addMapLegend(getMapMaxValue());
 
-  // Update the coloring for the states
+  // Update the coloring for the states and districts
   geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
 
   /* Update the label above the table that lists which
      projects are selected */
@@ -704,10 +829,11 @@ function updateProjectSelectedValues() {
     d3.select(".industry_breakdown_table #table_projects_label").text("For all projects");
   }
 
-  // Update the agency, program, and state checkboxes
+  // Update the agency, program, state, and district checkboxes
   updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateStateCheckboxes();
+  updateDistrictCheckboxes();
 }
 
 // Handle a change to which state is selected
@@ -730,6 +856,40 @@ function updateStateSelectedValues() {
   }
 }
 
+// Handle a change to which district is selected
+function updateDistrictSelectedValues() {
+  // Determine which district is selected
+  selected_district = [];
+  var checkboxes = document.querySelectorAll('#district_checkboxes input[type="checkbox"]:checked');
+  checkboxes.forEach(function(checkbox) {
+    selected_district.push(checkbox.value);
+  });
+
+  // If a district has been selected, zoom to that district
+  if(selected_district.length > 0) {
+    /* The selected district is the state name followed by a dash followed
+       by the district number; split out the state name and district number */
+    let selected_district_words = selected_district[0].split(" - ");
+
+    /* If the map is currently zoomed to the national level, update
+       the current_state and current_geography_code variables, which
+       would already have been updated if the map were zoomed to the
+       state level prior to zooming to the district level */
+    if(current_zoom_level === "national") {
+      current_state = selected_district_words[0];
+      current_geography_code = geojson.getLayers().find(layer => layer.feature.properties.NAME === current_state).feature.properties.STATE;
+    }
+
+    // Zoom to the district level
+    zoomToDistrict(selected_district_words[0], selected_district_words[1]);
+  }
+  /* If the currently selected district was unselected,
+     zoom back out to the state level */
+  else {
+    zoomToState(current_state);
+  }
+}
+
 
 
 /*
@@ -739,13 +899,17 @@ function updateStateSelectedValues() {
 // Update the underlying table data
 function updateTableData() {
   /* Depending on the current zoom level, set filtered_data equal to
-     the full dataset or to the dataset filtered just to a single state */
+     the full dataset, the dataset filtered just to a single state, or
+     the dataset filtered just to a single district */
   let filtered_data;
   if(current_zoom_level === "national") {
     filtered_data = full_data;
   }
   else if(current_zoom_level === "state") {
     filtered_data = full_data.filter(d => d.state === current_geography);
+  }
+  else if(current_zoom_level === "district") {
+    filtered_data = full_data.filter(d => (d.state === current_state) && (d.district === current_geography));
   }
 
   // Further filter based on selected agencies
@@ -784,7 +948,7 @@ function updateTableData() {
       output_total += curr_record.output;
       employment_total += curr_record.employment;
     }
-    
+
     // Add a new object to the table data
     new_table_data.push({"industry_desc": implan_industry_codes.filter(d => d.industry_code === industry)[0]["industry_desc"],
                          "output": Number(output_total.toFixed(4)),
@@ -883,23 +1047,28 @@ function setColorScale(max_value) {
 
 // Update the underlying map data
 function updateMapData() {
-  // Initialize mapData to be equal to the full dataset
+  /* Initialize both mapData and mapDistrictsData to be equal to
+     the full dataset */
   mapData = full_data;
-  
+  mapDistrictsData = full_data;
+
   // Filter based on selected agencies
   if (selected_agencies.length > 0) {
     let induced_programs = agency_program_crosswalk.filter(d => selected_agencies.includes(d.agency)).map(d => d.program);
     mapData = mapData.filter(d => induced_programs.includes(d.program));
+    mapDistrictsData = mapDistrictsData.filter(d => induced_programs.includes(d.program));
   }
 
   // Further filter based on selected programs
   if (selected_programs.length > 0) {
-    mapData = mapData.filter(d => selected_programs.includes(d.program));
+      mapData = mapData.filter(d => selected_programs.includes(d.program));
+      mapDistrictsData = mapDistrictsData.filter(d => selected_programs.includes(d.program));
   }
     
   // Further filter based on selected projects
   if (selected_projects.length > 0) {
-    mapData = mapData.filter(d => selected_projects.includes(d.project));
+      mapData = mapData.filter(d => selected_projects.includes(d.project));
+      mapDistrictsData = mapDistrictsData.filter(d => selected_projects.includes(d.project));
   }
 
   /* For the remaining data, extract the state names and
@@ -932,6 +1101,49 @@ function updateMapData() {
 
   // Store the new array
   mapData = new_map_data;
+  
+  /* If the map is currently zoomed to the state or district
+     levels, also create a district-level dataset */
+  if(current_geography != "United States") {
+    // Start by filtering the full dataset down to the current state
+    mapDistrictsData = mapDistrictsData.filter(d => d.state === current_state);
+
+    // Extract the district numbers and remove duplicates
+    let district_list = mapDistrictsData.map(d => d.district);
+    district_list = [...new Set(district_list)];
+
+    /* Create an array of objects that contains, for each district,
+       the district number, the total output, and the total employment */
+    let new_map_district_data = [];
+    let output_total;
+    let employment_total;
+    for(curr_district of district_list) {
+      // Extract the data for the current district
+      let curr_district_data = mapDistrictsData.filter(d => d.district === curr_district);
+
+      // Create totals from employment and output
+      output_total = 0;
+      employment_total = 0;
+      for(curr_record of curr_district_data) {
+        output_total += curr_record.output;
+        employment_total += curr_record.employment;
+      }
+
+      // Add a new object to the map district data
+      new_map_district_data.push({"district": curr_district,
+                                  "output": output_total,
+                                  "employment": employment_total});
+
+    }
+
+    // Store the new array
+    mapDistrictsData = new_map_district_data;
+  }
+  /* If the map is currently zoomed to the national level,
+     set the district-level dataset to be an empty array */
+  else {
+    mapDistrictsData = [];
+  }
 }
 
 // Add or update the legend on the map
@@ -1000,11 +1212,9 @@ function addMapLegend(max_value) {
 
 // Define a function to color each state
 function style_states(feature) {
-  /* If the map is currently zoomed to the national level, or if it is
-     zoomed to the state level and this feature is the focus state,
+  /* If the map is currently zoomed to the national level,
      color the state based on its value */
-  if((current_zoom_level === "national") ||
-     (current_zoom_level === "state" && current_state === feature.properties.NAME)) {
+  if(current_zoom_level === "national") {
     // Extract the data for this state
     let state_data = mapData.filter(d => d.state === feature.properties.NAME);
 
@@ -1019,7 +1229,8 @@ function style_states(feature) {
         fillOpacity: 1
     };
   }
-  // Otherwise make the state outline invisible
+  /* If the map is currently zoomed to the state or district
+     levels, make the state outline invisible */
   else {
     return {
       fillColor: 'rgba(0,0,0,0)',
@@ -1029,6 +1240,72 @@ function style_states(feature) {
       fillOpacity: 0
     };
   }
+}
+
+// Define a function to color each district
+function style_districts(feature) {
+  /* If the zoom level is national, or if the zoom level is state and
+     the current feature is not within that state, return a style
+     that makes the district invisible */
+  if(current_zoom_level === "national" || (current_zoom_level === "state" && current_geography_code != feature.properties.STATE)) {
+    return {
+        fillColor: 'rgba(0,0,0,0)',
+        weight: 0,
+        opacity: 0,
+        color: 'rgba(0,0,0,0)',
+        fillOpacity: 0
+    };
+  }
+  /* If the zoom level is state, color each district within the state based
+     on the range of values for the state */
+  else if (current_zoom_level === "state") {
+    // Extract the data for this district
+    let district_data = mapDistrictsData.filter(d => d.district === feature.properties.CD);
+
+    /* Color the district based on its employment or output value; if the
+       district does not appear in mapDistrictsData, then it has no impact
+       given the currently selected filters and will be colored grey */
+    return {
+      fillColor: color(district_data.length > 0 ? district_data[0][show_output_or_employment] : 0),
+      weight: 1,
+      opacity: 1,
+      color: '#dadada',
+      fillOpacity: 1
+    };
+
+  }
+  /* If the zoom level is district, color the single district based
+     on its own value */
+  else if (current_zoom_level === "district") {
+    /* Only color the district if it is the currently selected district and is
+       within the currently selected state */
+    if(feature.properties.CD === current_geography && feature.properties.STATE === current_geography_code) {
+      // Extract the data for this district
+      let district_data = mapDistrictsData.filter(d => d.district === current_geography);
+
+      /* Color the district based on its employment or output value; if the
+         district does not appear in mapDistrictsData, then it has no impact
+         given the currently selected filters and will be colored grey */
+      return {
+        fillColor: color(district_data.length > 0 ? district_data[0][show_output_or_employment] : 0),
+        weight: 1,
+        opacity: 1,
+        color: '#dadada',
+        fillOpacity: 1
+      };
+    }
+    else {
+      return {
+        fillColor: 'rgba(0,0,0,0)',
+        weight: 0,
+        opacity: 0,
+        color: 'rgba(0,0,0,0)',
+        fillOpacity: 0
+      };
+    }
+
+  }
+
 }
 
 // Zoom the map to the national level
@@ -1043,20 +1320,26 @@ function zoomToNational() {
   updateMapData();
   info.update();
   d3.select(".industry_breakdown_table #table_geography_label").text("For the United States");
+
+  let max_value = Math.max(...mapData.map(d => parseFloat(d[show_output_or_employment])));
   
-  addMapLegend(getMapMaxValue());
+  addMapLegend(max_value);
   updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
+  updateDistrictCheckboxes();
 
   map.setView([36.8, -96], 4.2);
 
   geojson.resetStyle();
-  
+  geojson_districts.resetStyle();
+
   geojson.bringToFront();
-  
+  geojson_districts.bringToBack();
+
   geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
   
 }
 
@@ -1078,15 +1361,65 @@ function zoomToState(state_name) {
   updateTable();
   updateMapData();
   d3.select(".industry_breakdown_table #table_geography_label").text("For " + state_name);
-  info.update();
+  info.update(state_name, mapDistrictsData.length);
+
+  let max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
   
-  addMapLegend(getMapMaxValue());
+  addMapLegend(max_value);
   geojson.setStyle(style_states);
-  
+  geojson_districts.setStyle(style_districts);
   updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
+  updateDistrictCheckboxes();
+}
+
+// Zoom the map to the district level
+function zoomToDistrict(state_name, district_number) {
+  
+  current_geography = district_number;
+  current_zoom_level = "district";
+
+
+  let district_layer = geojson_districts.getLayers().find(layer => (layer.feature.properties.STATE === current_geography_code) && (layer.feature.properties.CD === district_number));
+  
+  
+
+  map.fitBounds(district_layer.getBounds(), { padding: [20, 20] });
+  
+  updateTableData();
+  updateTable();
+  updateMapData();
+  d3.select(".industry_breakdown_table #table_geography_label").text("For " + current_state + " - District " + current_geography);
+  info.update(state_name, mapDistrictsData.length);
+
+  // Extract the data for the district that was clicked
+  let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
+
+  /* Get the output or employment value for the district, which represents
+     the maximum value because this is the only district being shown */
+  let max_value;
+  if(filtered_data.length > 0) {
+    max_value = filtered_data[0][show_output_or_employment];
+  }
+  else {
+    max_value = 0;
+  }
+
+  // Update the color scale and legend
+  
+  addMapLegend(max_value);
+
+  // Update the map styles
+  geojson.setStyle(style_states);
+  geojson_districts.setStyle(style_districts);
+
+  updateAgencyCheckboxes();
+  updateProgramCheckboxes();
+  updateProjectCheckboxes();
+  updateStateCheckboxes();
+  updateDistrictCheckboxes();
 }
 
 // Handle when the employment radio button is clicked
@@ -1097,9 +1430,9 @@ function handRadioEmploymentClick(e) {
   // Update the legend
   addMapLegend(getMapMaxValue());
 
-  // Update the state coloring
+  // Update the state and district coloring
   geojson.setStyle(style_states);
-  
+  geojson_districts.setStyle(style_districts);
 };
 
 // Handle when the output radio button is clicked
@@ -1110,13 +1443,13 @@ function handleRadioOutputClick(e) {
   // Update the legend
   addMapLegend(getMapMaxValue());
 
-  // Update the state coloring
+  // Update the state and district coloring
   geojson.setStyle(style_states);
-  
+  geojson_districts.setStyle(style_districts);
 };
 
 // Define a function to draw the map
-function drawMap(statesOutlines) {
+function drawMap(statesOutlines, congressionalDistrictsOutlines) {
 
   let zoom_national_button = L.control({position: 'bottomright'});
   zoom_national_button.onAdd = function (map) {
@@ -1181,12 +1514,44 @@ function drawMap(statesOutlines) {
       geojson.resetStyle(e.target);
   }
 
+  function highlightDistrictFeature(e) {
+
+    if(current_zoom_level === "state") {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 2,
+        color: '#666',
+        fillOpacity: 0.7
+      });
+
+      layer.bringToFront();
+    }
+  }
+
+  function resetDistrictHighlight(e) {
+      geojson_districts.resetStyle(e.target);
+  }
+
   function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
         mouseout: resetHighlight
     });
   }
+
+  function onEachDistrictFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightDistrictFeature,
+        mouseout: resetDistrictHighlight
+    });
+  }
+
+  geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
+    style: style_districts,
+    onEachFeature: onEachDistrictFeature,
+    attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
+  }).addTo(map);
 
   geojson = L.geoJson(statesOutlines, {
     style: style_states,
@@ -1199,16 +1564,22 @@ function drawMap(statesOutlines) {
   map.on('click', function(e) {
     // Find state polygons containing the point
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
+    
+    // Find district polygons containing the point
+    const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
     if(statesAtPoint.length > 0) {
       // Extract the name of the state that was clicked
       let geography_name = statesAtPoint[0].feature.properties.NAME;
 
-      if (current_zoom_level === "national") {
+      if(current_zoom_level === "district") {
+        zoomToNational();
+      }
+      else if (current_zoom_level === "national") {
         zoomToState(geography_name);
       }
-      else if (current_zoom_level === "state") {
-        zoomToNational();
+      else if (current_zoom_level === "state" && districtsAtPoint[0].feature.properties.STATE === current_geography_code) {
+        zoomToDistrict(geography_name, districtsAtPoint[0].feature.properties.CD);
       }
     }
 
@@ -1217,19 +1588,24 @@ function drawMap(statesOutlines) {
   map.on('mousemove', function(e) {
     // Find state polygons containing the point
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
+    
+    // Find district polygons containing the point
+    const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
     //
     let popup_latlng;
     let tooltipText = "";
 
-    if (statesAtPoint.length > 0) {
+    if (statesAtPoint.length > 0 && districtsAtPoint.length > 0) {
       const stateName = statesAtPoint[0].feature.properties.NAME;
       
-      if((current_zoom_level === "national") ||
-         (current_zoom_level === "state" && stateName === current_state)) {
-        //
+      
+      const districtState = districtsAtPoint[0].feature.properties.STATE;
+      const districtNumber = districtsAtPoint[0].feature.properties.CD;
+      
+      
+      if(current_zoom_level === "national") {
         tooltipText = `<b>${stateName}</b>`;
-
         // Extract the data for this state
         let state_data = mapData.filter(d => d.state === stateName);
 
@@ -1245,13 +1621,46 @@ function drawMap(statesOutlines) {
           tooltipText += `<br>Employment Impact: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
         }
         
+        //popup_latlng = statesAtPoint[0].getBounds().getCenter();
         popup_latlng = e.latlng;
+      }
+      else {
+        if((current_zoom_level === "state" && stateName === current_state) ||
+           (current_zoom_level === "district" && stateName === current_state && districtNumber === current_geography)) {
+
+          tooltipText = `<b>${stateName} - District ${districtNumber}</b>`;
+          let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
+          if(show_output_or_employment === "output") {
+            if(district_data.length > 0) {
+              tooltipText += `<br>Output Impact: $${district_data[0].output.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+            }
+            else {  
+              tooltipText += `<br>Output Impact: $0`;
+            }
+          }
+          else {
+            if(district_data.length > 0) {
+              let jobs_number = district_data[0].employment.toLocaleString('en-US', { maximumFractionDigits: 0 });
+              tooltipText += `<br>Employment Impact: ${jobs_number} job${jobs_number === '1' ? '' : 's'}`;
+            }
+            else {
+              tooltipText += `<br>Employment Impact: 0 jobs`;
+            }
+          }
+
+          popup_latlng = e.latlng;
+        }
+        else {
+          tooltipText = '<div>Impact Details</div>[Hover over a location]';
+        }
+        
       }
     }
     else {
       tooltipText = "";
     }
 
+    
     if (tooltipText != "" && popup_latlng != undefined) {
       popup
         .setLatLng(popup_latlng)
@@ -1279,13 +1688,16 @@ function drawMap(statesOutlines) {
   };
 
   // Set function to use in updating label
-  info.update = function() {
+  info.update = function (props, num_districts) {
       this._div.innerHTML = '<div>Geographic Focus</div>';
       if(current_zoom_level === "national") {
         this._div.innerHTML += 'United States' + '<br>States Impacted: ' + mapData.length;
       }
       else if(current_zoom_level === "state") {
-        this._div.innerHTML += current_state;
+        this._div.innerHTML += props + '<br>Districts Impacted: ' + num_districts;
+      }
+      else if(current_zoom_level === "district") {
+        this._div.innerHTML += current_state + ' - District ' + current_geography;
       }
   };
 
@@ -1304,11 +1716,12 @@ function drawVisualization() {
 
   /* Load the economic impact data, converting the
      employment and output values to numbers */
-  d3.csv("./economic_impact_state_data.csv", (d) => {
+  d3.csv("./economic_impact_district_data.csv", (d) => {
     return {
       program: d.program,
       project: d.project,
       state: d.state,
+      district: d.district,
       industry_code: d.industry_code,
       employment: +d.employment,
       output: +d.output
@@ -1331,14 +1744,24 @@ function drawVisualization() {
         // Update the map data
         updateMapData();
 
-
-        setColorScale(getMapMaxValue());
+        let curr_values;
+        if (show_output_or_employment == "output") {
+          curr_values = mapData.map(d => d.output);
+        }
+        else {
+          curr_values = mapData.map(d => d.employment);
+        }
         
+        let max_value = Math.max(...curr_values);
+
+        setColorScale(max_value);
+        //addMapLegend(max_value);
 
         updateAgencyCheckboxes();
         updateProgramCheckboxes();
         updateProjectCheckboxes();
         updateStateCheckboxes();
+        updateDistrictCheckboxes();
 
         document.getElementById('program_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
@@ -1357,6 +1780,13 @@ function drawVisualization() {
         document.getElementById('state_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
           document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
+            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+          });
+        });
+
+        document.getElementById('district_checkboxes_filter').addEventListener('input', function() {
+          let search_text = this.value.toUpperCase();
+          document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
             label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
           });
         });
@@ -1382,7 +1812,7 @@ function drawVisualization() {
           const link = document.createElement('a');
           const url = URL.createObjectURL(blob);
           link.setAttribute('href', url);
-          const geography_string = current_geography.toLowerCase().replace(/\s+/g, '_');
+          const geography_string = current_zoom_level === "district" ? current_state.toLowerCase().replace(/\s+/g, '_') + '-' + current_geography.toLowerCase().replace(/\s+/g, '_') : current_geography.toLowerCase().replace(/\s+/g, '_');
           link.setAttribute('download', `economic_impact_${geography_string}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}_${table_is_filtered ? "selectedindustries" : "allindustries"}.csv`);
           link.style.visibility = 'hidden';
           document.body.appendChild(link);
@@ -1408,6 +1838,7 @@ function drawVisualization() {
           updateProgramCheckboxes();
           updateProjectCheckboxes();
           updateStateCheckboxes();
+          updateDistrictCheckboxes();
         }
 
         // Add handler for pressing enter within the filter text input
@@ -1524,14 +1955,19 @@ function drawVisualization() {
         // Load the state outlines
         d3.json("./states_outlines.json").then(function(statesOutlines) {
 
+          // Load the congressional district outlines
+          d3.json("./congressional_districts_outlines.json").then(function(congressionalDistrictsOutlines) {
+
             // Hide the "Loading..." message
             document.getElementById("loading_message").style.display = "none";
 
             // Draw the map
-            drawMap(statesOutlines);
+            drawMap(statesOutlines, congressionalDistrictsOutlines);
 
             // Draw the legend
-            addMapLegend(getMapMaxValue());
+            addMapLegend(max_value);
+
+          });
 
         });
 
