@@ -1310,34 +1310,46 @@ function style_districts(feature) {
 
 // Zoom the map to the national level
 function zoomToNational() {
+  // Update the current zoom level and other variables tracking geography
+  current_zoom_level = "national";
   current_geography = "United States";
   current_geography_code = "US";
-  current_zoom_level = "national";
   current_state = "none";
   
+  // Update the table data and the table
   updateTableData();
   updateTable();
-  updateMapData();
-  info.update();
+
+  // Update the geography label above the table
   d3.select(".industry_breakdown_table #table_geography_label").text("For the United States");
 
+  // Update the map data and the info box on the map
+  updateMapData();
+  info.update();
+
+  // Update the legend
   let max_value = Math.max(...mapData.map(d => parseFloat(d[show_output_or_employment])));
-  
   addMapLegend(max_value);
+
+  // Update the checkboxes
   updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
   updateStateCheckboxes();
   updateDistrictCheckboxes();
 
+  // Set the map view to the United States
   map.setView([36.8, -96], 4.2);
 
+  // Reset the map styles
   geojson.resetStyle();
   geojson_districts.resetStyle();
 
+  // Bring the state layer to the front and send the district layer to the back
   geojson.bringToFront();
   geojson_districts.bringToBack();
 
+  // Update the state and district coloring
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
   
@@ -1345,29 +1357,42 @@ function zoomToNational() {
 
 // Zoom the map to the state level
 function zoomToState(state_name) {
-  
+  // Extract the given state's layer from the map
   let layers = geojson.getLayers();
   let state_layer = layers.find(layer => layer.feature.properties.NAME === state_name);
   
-  geojson.bringToBack();
-
+  // Update the current zoom level and other variables tracking geography
+  current_zoom_level = "state";
   current_geography = state_name;
   current_geography_code = state_layer.feature.properties.STATE;
-  current_zoom_level = "state";
   current_state = state_name;
+
+  // Send the state layer to the back of the map
+  geojson.bringToBack();
+
+  // Fit the map to the state layer
   map.fitBounds(state_layer.getBounds(), { padding: [20, 20] });
   
+  // Update the table data and the table
   updateTableData();
   updateTable();
+
+  // Update the map data and the info box on the map
   updateMapData();
-  d3.select(".industry_breakdown_table #table_geography_label").text("For " + state_name);
   info.update(state_name, mapDistrictsData.length);
 
-  let max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
+  // Update the geography label above the table
+  d3.select(".industry_breakdown_table #table_geography_label").text("For " + state_name);
   
+  // Update the legend
+  let max_value = Math.max(...mapDistrictsData.map(d => parseFloat(d[show_output_or_employment])));
   addMapLegend(max_value);
+
+  // Update the state and district coloring
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
+
+  // Update the checkboxes
   updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
@@ -1377,24 +1402,32 @@ function zoomToState(state_name) {
 
 // Zoom the map to the district level
 function zoomToDistrict(state_name, district_number) {
-  
-  current_geography = district_number;
+  /* Update the current zoom level and the current geography; the
+     geography code and current state are left as they are from
+     when the map was zoomed to the state level (or are populated
+     when the user chooses a district from the drop-down when the
+     map is at the national level */
   current_zoom_level = "district";
-
-
+  current_geography = district_number;
+  
+  // Extract the given district's layer from the map
   let district_layer = geojson_districts.getLayers().find(layer => (layer.feature.properties.STATE === current_geography_code) && (layer.feature.properties.CD === district_number));
   
-  
-
+  // Fit the map to the district layer
   map.fitBounds(district_layer.getBounds(), { padding: [20, 20] });
-  
+
+  // Update the table data and the table
   updateTableData();
   updateTable();
+
+  // Update the map data and the info box on the map
   updateMapData();
-  d3.select(".industry_breakdown_table #table_geography_label").text("For " + current_state + " - District " + current_geography);
   info.update(state_name, mapDistrictsData.length);
 
-  // Extract the data for the district that was clicked
+  // Update the geography label above the table
+  d3.select(".industry_breakdown_table #table_geography_label").text("For " + current_state + " - District " + current_geography);
+  
+  // Extract the data for the given district
   let filtered_data = mapDistrictsData.filter(d => d.district === current_geography);
 
   /* Get the output or employment value for the district, which represents
@@ -1407,14 +1440,14 @@ function zoomToDistrict(state_name, district_number) {
     max_value = 0;
   }
 
-  // Update the color scale and legend
-  
+  // Update the legend
   addMapLegend(max_value);
 
-  // Update the map styles
+  // Update the state and district coloring
   geojson.setStyle(style_states);
   geojson_districts.setStyle(style_districts);
 
+  // Update the checkboxes
   updateAgencyCheckboxes();
   updateProgramCheckboxes();
   updateProjectCheckboxes();
@@ -1448,9 +1481,10 @@ function handleRadioOutputClick(e) {
   geojson_districts.setStyle(style_districts);
 };
 
-// Define a function to draw the map
+/* Define a function to draw the map; it takes the state and
+   congressional district outline data as parameters */
 function drawMap(statesOutlines, congressionalDistrictsOutlines) {
-
+  // Add the "Zoom Out to National" button to the map
   let zoom_national_button = L.control({position: 'bottomright'});
   zoom_national_button.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'national_button_div');
@@ -1459,13 +1493,20 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
   };
   zoom_national_button.addTo(map);
 
+  // Add the event listener for the zoom-to-national button
   document.getElementById('zoom_national').onclick = function(e) {
+    /* Stop event propagation so that the map itself does not
+       register a click event */
     L.DomEvent.stopPropagation(e);
+
+    // Hide all checkboxes
     hideAllCheckboxes();
+
+    // Zoom to the national level
     zoomToNational();
   }
 
-
+  // Add the employment-output radio buttons control
   let measure_control = L.control({position: 'topright'});
   measure_control.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'measure_controls');
@@ -1477,62 +1518,83 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
   };
   measure_control.addTo(map);
 
+  // Add an event listener for the measure_controls div
   document.getElementsByClassName('measure_controls')[0].onclick = function(e) {
-    // Stop event propagation if the user has clicked within the measure_controls div
+    /* Stop event propagation if the user has clicked within the
+       measure_controls div so that the map itself does not
+       register a click event */
     L.DomEvent.stopPropagation(e);
   }
 
+  // Add an event listener for the output radio button
   document.getElementById('radio_output').addEventListener('change', function(e) {
     handleRadioOutputClick(e);
   });
 
+  // Add an event listener for the employment radio button
   document.getElementById('radio_employment').addEventListener('change', function(e) {
     handRadioEmploymentClick(e);
   });
 
+  // Create the popup
   var popup = L.popup({autoPan: false,
                        keepInView: true,
                        closeButton: false});
 
-
+  
+  // Define a function that handles feature highlighting for states
   function highlightFeature(e) {
-    
+    /* Only highlight the feature if the map is zoomed
+       to the national level */
     if(current_zoom_level === "national") {
-      var layer = e.target;
+      // Get the layer
+      let layer = e.target;
+
+      // Update the style
       layer.setStyle({
           weight: 2,
           color: '#666',
           fillOpacity: 0.7
       });
 
+      // Bring to front
       layer.bringToFront();
     }
-
   }
 
+  // Define a function that resets the feature for states
   function resetHighlight(e) {
-      geojson.resetStyle(e.target);
+    // Put the style back to the default
+    geojson.resetStyle(e.target);
   }
 
+  // Define a function that handles feature highlighting for districts
   function highlightDistrictFeature(e) {
-
+    /* Only highlight the feature if the map is zoomed
+       to the state level */
     if(current_zoom_level === "state") {
+      // Get the layer
       var layer = e.target;
 
+      // Update the style
       layer.setStyle({
         weight: 2,
         color: '#666',
         fillOpacity: 0.7
       });
 
+      // Bring to front
       layer.bringToFront();
     }
   }
 
+  // Define a function that resets the feature for districts
   function resetDistrictHighlight(e) {
-      geojson_districts.resetStyle(e.target);
+    // Put the style back to the default
+    geojson_districts.resetStyle(e.target);
   }
 
+  // Set the highlighting/reset functions for states
   function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
@@ -1540,6 +1602,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     });
   }
 
+  // Set the highlighting/reset functions for districts
   function onEachDistrictFeature(feature, layer) {
     layer.on({
         mouseover: highlightDistrictFeature,
@@ -1547,20 +1610,24 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     });
   }
 
+  // Create the districts geoJSON layer
   geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
     style: style_districts,
     onEachFeature: onEachDistrictFeature,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
+  // Create the states geoJSON layer
   geojson = L.geoJson(statesOutlines, {
     style: style_states,
     onEachFeature: onEachFeature,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
+  // Set the map view to show the entire United States
   map.setView([36.8, -96], 4.2);
 
+  // Add a click event listener to the map
   map.on('click', function(e) {
     // Find state polygons containing the point
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
@@ -1568,23 +1635,32 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     // Find district polygons containing the point
     const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
+    // Do the following only if a state (rather than nothing) was clicked
     if(statesAtPoint.length > 0) {
       // Extract the name of the state that was clicked
       let geography_name = statesAtPoint[0].feature.properties.NAME;
-
-      if(current_zoom_level === "district") {
+      
+      /* If the map is currently at the district level, zoom to
+         the national level */
+      if(current_zoom_level === "district" && districtsAtPoint[0].feature.properties.CD === current_geography) {
         zoomToNational();
       }
+      /* If the map is currently at the national level, zoom to
+         the state level */
       else if (current_zoom_level === "national") {
         zoomToState(geography_name);
       }
+      /* If the map is at the state level, and the district that was
+         clicked is within the current state, zoom to the district
+         level (ignore clicks on districts that are not within the
+         current state) */
       else if (current_zoom_level === "state" && districtsAtPoint[0].feature.properties.STATE === current_geography_code) {
         zoomToDistrict(geography_name, districtsAtPoint[0].feature.properties.CD);
       }
     }
-
   });
 
+  // Add a mouse movement event listener to the map
   map.on('mousemove', function(e) {
     // Find state polygons containing the point
     const statesAtPoint = leafletPip.pointInLayer(e.latlng, geojson);
@@ -1592,28 +1668,38 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
     // Find district polygons containing the point
     const districtsAtPoint = leafletPip.pointInLayer(e.latlng, geojson_districts);
 
-    //
+    // Create a variable to hold the lat-long
     let popup_latlng;
+
+    // Initially set the popup text to be empty
     let tooltipText = "";
 
+    // If the user is hovering over a state/district
     if (statesAtPoint.length > 0 && districtsAtPoint.length > 0) {
+      // Extract the name of the state
       const stateName = statesAtPoint[0].feature.properties.NAME;
       
-      
-      const districtState = districtsAtPoint[0].feature.properties.STATE;
+      // Extract the district number
       const districtNumber = districtsAtPoint[0].feature.properties.CD;
       
-      
+      /* If the map is zoomed to the national level, the popup
+         will show information about the hovered state */
       if(current_zoom_level === "national") {
+        // Set the first line to be the state name in bold
         tooltipText = `<b>${stateName}</b>`;
+
         // Extract the data for this state
         let state_data = mapData.filter(d => d.state === stateName);
 
+        /* If there is data for the state, extract the output or
+           employment value depending on which radio button is
+           selected; otherwise, set the value to zero */
         let state_total = 0;
         if (state_data.length > 0) {
           state_total = state_data[0][show_output_or_employment];
         }
 
+        // Set the second line to be the value with a label
         if(show_output_or_employment == "output") { 
           tooltipText += `<br>Output Impact: $${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
         }
@@ -1621,16 +1707,27 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
           tooltipText += `<br>Employment Impact: ${state_total.toLocaleString('en-US', { maximumFractionDigits: 0 })} jobs`;
         }
         
-        //popup_latlng = statesAtPoint[0].getBounds().getCenter();
+        // Update the lat-long
         popup_latlng = e.latlng;
       }
+      /* If the map is zoomed to the state or district levels,
+         the popup will show information about the hovered district */
       else {
+        /* If the map is at the state level, check that the user is hovering
+           over a district in the current state; if the map is at the district
+           level, check that the user is hovering over the current district */
         if((current_zoom_level === "state" && stateName === current_state) ||
            (current_zoom_level === "district" && stateName === current_state && districtNumber === current_geography)) {
 
+          // Set the first line to be the state name and district number in bold
           tooltipText = `<b>${stateName} - District ${districtNumber}</b>`;
+
+          // Extract the data for this district
           let district_data = mapDistrictsData.filter(d => d.district === districtNumber);
+
+          // Set the second line to be the value with a label
           if(show_output_or_employment === "output") {
+            // Extract the value if there is data and set to zero otherwise
             if(district_data.length > 0) {
               tooltipText += `<br>Output Impact: $${district_data[0].output.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
             }
@@ -1639,6 +1736,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
             }
           }
           else {
+            // Extract the value if there is data and set to zero otherwise
             if(district_data.length > 0) {
               let jobs_number = district_data[0].employment.toLocaleString('en-US', { maximumFractionDigits: 0 });
               tooltipText += `<br>Employment Impact: ${jobs_number} job${jobs_number === '1' ? '' : 's'}`;
@@ -1648,41 +1746,39 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
             }
           }
 
+          // Update the lat-long
           popup_latlng = e.latlng;
         }
-        else {
-          tooltipText = '<div>Impact Details</div>[Hover over a location]';
-        }
-        
       }
     }
-    else {
-      tooltipText = "";
-    }
 
-    
+    /* If the popup text has been set and there is a
+       defined lat-long location, update the position
+       and content of the popup and show it */
     if (tooltipText != "" && popup_latlng != undefined) {
       popup
         .setLatLng(popup_latlng)
         .setContent(tooltipText)
         .openOn(map);
     }
+    // Otherwise, hide the popup
     else {
       popup.close();
     }
-
   });
 
+  // Add a mouse out event listener to the map
   map.on('mouseout', function(e) {
+    // Close the popup
     popup.close();
   });
 
-  // Create the control
+  // Create the info control
   info = L.control({position: 'bottomright'});
 
   // Set function to create label
   info.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this._div = L.DomUtil.create('div', 'info');
     this.update();
     return this._div;
   };
@@ -1701,7 +1797,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
       }
   };
 
-  // Add control to map
+  // Add the info control to the map
   info.addTo(map);
 }
 
@@ -1731,11 +1827,14 @@ function drawVisualization() {
     // Store the full dataset
     full_data = loaded_data;
     
+    /* Load the IMPLAN industry codes data, which contains the
+       industry code number and the industry text description */
     d3.csv("./implan_industry_codes.csv").then(function(loaded_codes_data) {
     
-      // Store the IMPLAN industry codes
+      // Store the IMPLAN industry codes data
       implan_industry_codes = loaded_codes_data;
 
+      // Load the agency-program crosswalk
       d3.csv("./agency_program_crosswalk.csv").then(function(loaded_agency_crosswalk_data) {
 
         // Store the agency-program crosswalk
@@ -1744,6 +1843,7 @@ function drawVisualization() {
         // Update the map data
         updateMapData();
 
+        // Set the color scale based on the values shown on the map
         let curr_values;
         if (show_output_or_employment == "output") {
           curr_values = mapData.map(d => d.output);
@@ -1751,18 +1851,25 @@ function drawVisualization() {
         else {
           curr_values = mapData.map(d => d.employment);
         }
-        
         let max_value = Math.max(...curr_values);
-
         setColorScale(max_value);
-        //addMapLegend(max_value);
-
+        
+        // Update the checkboxes
         updateAgencyCheckboxes();
         updateProgramCheckboxes();
         updateProjectCheckboxes();
         updateStateCheckboxes();
         updateDistrictCheckboxes();
 
+        // Add event listener for agency checkboxes filter text box
+        document.getElementById('agency_checkboxes_filter').addEventListener('input', function() {
+          let search_text = this.value.toUpperCase();
+          document.querySelectorAll('#agency_checkboxes label').forEach(function(label) { 
+            label.style.display = label.innerText.toUpperCase().includes(search_text) ? "block" : "none";
+          });
+        });
+
+        // Add event listener for program checkboxes filter text box
         document.getElementById('program_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
           document.querySelectorAll('#program_checkboxes label').forEach(function(label) { 
@@ -1770,6 +1877,7 @@ function drawVisualization() {
           });
         });
 
+        // Add event listener for project checkboxes filter text box
         document.getElementById('project_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
           document.querySelectorAll('#project_checkboxes label').forEach(function(label) { 
@@ -1777,6 +1885,7 @@ function drawVisualization() {
           });
         });
 
+        // Add event listener for state checkboxes filter text box
         document.getElementById('state_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
           document.querySelectorAll('#state_checkboxes label').forEach(function(label) { 
@@ -1784,6 +1893,7 @@ function drawVisualization() {
           });
         });
 
+        // Add event listener for district checkboxes filter text box
         document.getElementById('district_checkboxes_filter').addEventListener('input', function() {
           let search_text = this.value.toUpperCase();
           document.querySelectorAll('#district_checkboxes label').forEach(function(label) { 
@@ -1791,10 +1901,11 @@ function drawVisualization() {
           });
         });
 
+        // Update the table data and the table
         updateTableData();
         updateTable();
 
-        // Add click handler for download button
+        // Add a click handler for the "Download Table Data" button
         document.getElementById('downloadCSV').onclick = function() {
           // Create CSV content
           const headers = ['Industry', 'Employment', 'Output'];
@@ -1807,33 +1918,38 @@ function drawVisualization() {
             ].join(','))
           ].join('\n');
 
-          // Create blob and download
+          // Create the blob and download it
           const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
           const link = document.createElement('a');
           const url = URL.createObjectURL(blob);
           link.setAttribute('href', url);
           const geography_string = current_zoom_level === "district" ? current_state.toLowerCase().replace(/\s+/g, '_') + '-' + current_geography.toLowerCase().replace(/\s+/g, '_') : current_geography.toLowerCase().replace(/\s+/g, '_');
-          link.setAttribute('download', `economic_impact_${geography_string}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}_${table_is_filtered ? "selectedindustries" : "allindustries"}.csv`);
+          link.setAttribute('download', `economic_impact_${geography_string}_${selected_agencies.length > 0 ? "selectedagencies" : "allagencies"}_${selected_programs.length > 0 ? "selectedprograms" : "allprograms"}_${selected_projects.length > 0 ? "selectedprojects" : "allprojects"}_${table_is_filtered ? "selectedindustries" : "allindustries"}.csv`);
           link.style.visibility = 'hidden';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
         };
 
-        // Add click handler for the clear filters button
+        // Add a click handler for the "Clear Filters" button
         document.getElementById('clear_button').onclick = function() {
+          // Hide all checkboxes
           hideAllCheckboxes();
 
+          // Clear any selected agencies, programs, and/or projects
           selected_agencies = [];
           selected_programs = [];
           selected_projects = [];
 
+          // Reset the labels above the table
           d3.select(".industry_breakdown_table #table_agencies_label").text("For all agencies");
           d3.select(".industry_breakdown_table #table_programs_label").text("For all programs");
           d3.select(".industry_breakdown_table #table_projects_label").text("For all projects");
 
+          // Zoom the map to the national level
           zoomToNational();
 
+          // Update all of the checkboxes
           updateAgencyCheckboxes();
           updateProgramCheckboxes();
           updateProjectCheckboxes();
@@ -1841,27 +1957,40 @@ function drawVisualization() {
           updateDistrictCheckboxes();
         }
 
-        // Add handler for pressing enter within the filter text input
+        /* Define a function to filter the table data based on the
+           text in the table_filter_phrase input */
+        function filterTableData() {
+          // Mark that the table has been filtered
+          table_is_filtered = true;
+
+          // Retrieve the filter text
+          let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
+
+          /* Refresh the table data from scratch (in case the user
+             performs multiple filters in a row, where the new
+             filter is not a subset of the previous filter) */
+          updateTableData();
+
+          // Filter the table data based on the filter text
+          tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
+
+          // Update the table
+          updateTable();
+        }
+
+        // Add a handler for pressing enter within the "Filter by Industry" text box
         document.getElementById('table_filter_phrase').addEventListener('keydown', function(event) {
           if (event.key === 'Enter') {
-            table_is_filtered = true;
-            let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
-            updateTableData();
-            tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
-            updateTable();
+            filterTableData();
           }
         });
 
-        // Add click handler for filter table button
+        // Add a click handler for the "Filter Table" button
         document.getElementById('filterTable').onclick = function() {
-          table_is_filtered = true;
-          let filterPhrase = document.getElementById('table_filter_phrase').value.toUpperCase();
-          updateTableData();
-          tableData = tableData.filter(d => d.industry_desc.toUpperCase().includes(filterPhrase));
-          updateTable();
+          filterTableData();
         };
 
-        // Add click handler for clear table filter button
+        // Add a click handler for the "Clear Filter" button
         document.getElementById('clearTableFilter').onclick = function() {
           table_is_filtered = false;
           document.getElementById('table_filter_phrase').value = "";
@@ -1869,78 +1998,104 @@ function drawVisualization() {
           updateTable();
         };
 
-        // Add a click handler for the employment header in the table
+        // Add a click handler for the industry header in the table
         document.getElementById('industry_header').onclick = function() {
+          /* Remove the ascending or descending classes from the
+             other table headers */
           document.getElementById('employment_header').classList.remove("ascending");
           document.getElementById('employment_header').classList.remove("descending");
           document.getElementById('output_header').classList.remove("ascending");
           document.getElementById('output_header').classList.remove("descending");
 
+          // Sort the table data by industry in descending order
           if(tableSortVariable === "industry" && tableSortDirection === "ascending") {
-            // Sort the table data by industry in ascending order
             tableData.sort((a, b) => (b.industry_desc.localeCompare(a.industry_desc) === 0 ? b.employment - a.employment : b.industry_desc.localeCompare(a.industry_desc)));
             tableSortDirection = "descending";
             document.getElementById('industry_header').classList.remove("ascending");
             d3.select("#industry_header").classed("descending", "true");
           }
+          // Sort the table data by industry in ascending order
           else {
             tableData.sort((a, b) => (a.industry_desc.localeCompare(b.industry_desc) === 0 ? a.employment - b.employment : a.industry_desc.localeCompare(b.industry_desc)));
             tableSortDirection = "ascending";
             document.getElementById('industry_header').classList.remove("descending");
             d3.select("#industry_header").classed("ascending", "true");
           }
+
+          // Mark that the table is sorted by industry
           tableSortVariable = "industry";
+
+          // Update the table
           updateTable();
         }
 
         // Add a click handler for the employment header in the table
         document.getElementById('employment_header').onclick = function() {
+          /* Remove the ascending or descending classes from the
+             other table headers */
           document.getElementById('industry_header').classList.remove("ascending");
           document.getElementById('industry_header').classList.remove("descending");
           document.getElementById('output_header').classList.remove("ascending");
           document.getElementById('output_header').classList.remove("descending");
 
+          // Sort the table data by employment in ascending order
           if(tableSortVariable === "employment" && tableSortDirection === "descending") {
-            // Sort the table data by employment in ascending order
             tableData.sort((a, b) => (a.employment - b.employment === 0 ? a.output - b.output : a.employment - b.employment));
             tableSortDirection = "ascending";
             document.getElementById('employment_header').classList.remove("descending");
             d3.select("#employment_header").classed("ascending", "true");
           }
+          // Sort the table data by employment in descending order
           else {
             tableData.sort((a, b) => (b.employment - a.employment === 0 ? b.output - a.output : b.employment - a.employment));
             tableSortDirection = "descending";
             document.getElementById('employment_header').classList.remove("ascending");
             d3.select("#employment_header").classed("descending", "true");
           }
+
+          // Mark that the table is sorted by employment
           tableSortVariable = "employment";
+
+          // Update the table
           updateTable();
         }
 
         // Add a click handler for the output header in the table
         document.getElementById('output_header').onclick = function() {
+          /* Remove the ascending or descending classes from the
+             other table headers */
           document.getElementById('industry_header').classList.remove("ascending");
           document.getElementById('industry_header').classList.remove("descending");
           document.getElementById('employment_header').classList.remove("ascending");
           document.getElementById('employment_header').classList.remove("descending");
 
+          // Sort the table data by output in ascending order
           if(tableSortVariable === "output" && tableSortDirection === "descending") {
-            // Sort the table data by output in ascending order
             tableData.sort((a, b) => (a.output - b.output === 0 ? a.employment - b.employment : a.output - b.output));
             tableSortDirection = "ascending";
             document.getElementById('output_header').classList.remove("descending");
             d3.select("#output_header").classed("ascending", "true");
           }
+          // Sort the table data by output in descending order
           else {
             tableData.sort((a, b) => (b.output - a.output === 0 ? b.employment - a.employment : b.output - a.output));
             tableSortDirection = "descending";
             document.getElementById('output_header').classList.remove("ascending");
             d3.select("#output_header").classed("descending", "true");
           }
+
+          // Mark that the table is sorted by output
           tableSortVariable = "output";
+
+          // Update the table
           updateTable();
         }
 
+        /* Add a click event listener to the entire visualization, which will close
+           all checkboxes if the user clicks outside of the checkboxes (note that
+           clicking on a state or district within their respective drop-downs will
+           close the checkboxes because only one state and/or district can be
+           selected at a time) */
         document.body.addEventListener('click', function(e) {
           if (!(e.target.classList.contains('overSelect') ||
                 e.target.nodeName === "LABEL" ||

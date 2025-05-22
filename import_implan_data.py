@@ -67,10 +67,12 @@ data[["program",
       "project_truncated"]] = data["program_project"].str.split('_', n=1, expand=True)
 
 # For the OCED programs ('Long-DurationEnergy', 'CleanEnergy', and
-# 'CarbonManagement'), modify the "project_truncated" column to ignore
-# the leading text "Assembly_" and anything after (and including) the
-# next underscore character
-data.loc[data['program'].isin(['Long-DurationEnergy', 'CleanEnergy', 'CarbonManagement']), 'project_truncated'] = data['project_truncated'].str.extract(r'(Assembly_)([^_]+)(_)')[1]
+# 'CarbonManagement'), revert the "project_truncated" column to have
+# the contents of the "program_project" column because that is how
+# the OCED project names crosswalk is structured (see below)
+data.loc[data['program'].isin(['Long-DurationEnergy',
+                               'CleanEnergy',
+                               'CarbonManagement']), 'project_truncated'] = data['program_project']
 
 # Replace the existing program acronyms or program names with
 # consistent, lowercase acronyms to reduce the data file size;
@@ -88,13 +90,16 @@ idp_names = pd.read_csv('idp_project_names.csv')
 # Import the DV project names crosswalk
 dv_names = pd.read_csv('dv_project_names.csv')
 
-# Create a full names crosswalk by concatenating
-# the two crosswalks together
-names_data = pd.concat([idp_names, dv_names], ignore_index = True)
+# Import the OCED project names crosswalk
+oced_names = pd.read_csv('oced_project_names.csv')
 
-# Delete the idp_names and dv_names variables because
+# Create a full names crosswalk by concatenating
+# the three crosswalks together
+names_data = pd.concat([idp_names, dv_names, oced_names], ignore_index = True)
+
+# Delete the idp_names, dv_names, and oced_names variables because
 # they are no longer needed
-del idp_names, dv_names
+del idp_names, dv_names, oced_names
 
 # Merge the full project names into the dataset (projects that
 # do not have a match in the crosswalk data will have values
