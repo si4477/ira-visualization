@@ -675,7 +675,7 @@ div.industry_breakdown_table tbody > tr:hover {
 
   div.industry_breakdown_table table {
     font-size: 12px;
-    max-height: 400px;
+    max-height: 350px;
   }
 
   div.industry_breakdown_table table td:first-child {
