@@ -630,7 +630,7 @@ div.industry_breakdown_table tbody > tr:hover {
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 650px) {
   #map_controls {
     align-items: center;
     justify-content: center;
