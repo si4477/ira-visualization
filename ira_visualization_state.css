@@ -617,7 +617,7 @@ div.industry_breakdown_table tbody > tr:hover {
   }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 550px) {
   #map_controls {
     align-items: center;
     justify-content: center;
@@ -662,7 +662,6 @@ div.industry_breakdown_table tbody > tr:hover {
 
   div.industry_breakdown_table table {
     font-size: 12px;
-    max-height: 350px;
   }
 
   div.industry_breakdown_table table td:first-child {
@@ -679,5 +678,11 @@ div.industry_breakdown_table tbody > tr:hover {
 
   .source_acknowledgements {
     font-size: 10px;
+  }
+}
+
+@media (max-width: 350px) {
+  div.industry_breakdown_table table {
+    max-height: 350px;
   }
 }
