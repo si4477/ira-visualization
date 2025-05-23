@@ -22,7 +22,7 @@ var map = L.map('leaflet_map', {
     zoomSnap: 0.1,
     touchZoom: false,
     attributionControl: false
-  }).setView([36.8, -96], 4.2);
+  }).setView([36.8, -96], window.innerWidth >= 1000 ? 4.2 : 4.2 - ((1000-window.innerWidth)*0.002));
 
 /* Define a variable to track whether the map is
    showing employment or output; show the employment
@@ -1060,7 +1060,7 @@ function zoomToNational() {
   updateStateCheckboxes();
 
   // Set the map view to the United States
-  map.setView([36.8, -96], 4.2);
+  map.setView([36.8, -96], window.innerWidth >= 1000 ? 4.2 : 4.2 - ((1000-window.innerWidth)*0.002));
 
   // Reset the map style
   geojson.resetStyle();
@@ -1239,9 +1239,6 @@ function drawMap(statesOutlines) {
     onEachFeature: onEachFeature,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
-
-  // Set the map view to show the entire United States
-  map.setView([36.8, -96], 4.2);
 
   // Add a click event listener to the map
   map.on('click', function(e) {

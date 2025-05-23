@@ -513,25 +513,6 @@ div.industry_breakdown_table tbody > tr:hover {
   background-color: #dadada;
 }
 
-@media (max-width: 600px) {
-  div.industry_breakdown_table table {
-    font-size: 12px;
-    max-height: 300px;
-  }
-
-  div.industry_breakdown_table table td:first-child {
-    font-size: 10px;
-  }
-
-  div.industry_breakdown_table th.employment_column {
-    min-width: 140px;
-  }
-
-  div.industry_breakdown_table th.employment_column {
-    min-width: 95px;
-  }
-}
-
 .industry_column:hover,
 .employment_column:hover,
 .output_column:hover {
@@ -631,4 +612,36 @@ div.industry_breakdown_table tbody > tr:hover {
 .source_acknowledgements > a {
   color: #555;
   text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  #leaflet_map {
+    margin-top: 5px;
+  }
+
+  div.industry_breakdown_table {
+    margin-top: 5px;
+  }
+
+  div.industry_breakdown_table table {
+    font-size: 12px;
+    max-height: 300px;
+  }
+
+  div.industry_breakdown_table table td:first-child {
+    font-size: 10px;
+  }
+
+  div.industry_breakdown_table th.employment_column {
+    min-width: 140px;
+  }
+
+  div.industry_breakdown_table th.employment_column {
+    min-width: 95px;
+  }
+
+  .source_acknowledgements {
+    font-size: 10px;
+    margin-top: 5px;
+  }
 }
