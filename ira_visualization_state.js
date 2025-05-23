@@ -22,7 +22,7 @@ var map = L.map('leaflet_map', {
     zoomSnap: 0.1,
     touchZoom: false,
     attributionControl: false
-  }).setView([36.8, -96], window.innerWidth >= 1000 ? 4.2 : 4.2 - ((1000-window.innerWidth)*0.002));
+  }).setView([36.8, -96], window.innerWidth >= 1000 ? 4.2 : 4.2 - ((1000-window.innerWidth)*0.0022));
 
 /* Define a variable to track whether the map is
    showing employment or output; show the employment
@@ -1060,7 +1060,7 @@ function zoomToNational() {
   updateStateCheckboxes();
 
   // Set the map view to the United States
-  map.setView([36.8, -96], window.innerWidth >= 1000 ? 4.2 : 4.2 - ((1000-window.innerWidth)*0.002));
+  map.setView([36.8, -96], window.innerWidth >= 1000 ? 4.2 : 4.2 - ((1000-window.innerWidth)*0.0022));
 
   // Reset the map style
   geojson.resetStyle();

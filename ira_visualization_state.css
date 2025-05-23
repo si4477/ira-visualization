@@ -175,6 +175,10 @@ div.leaflet-top.leaflet-right > div {
   color: #444;
 }
 
+.multiselect {
+  height: 37px;
+}
+
 .multiselect:nth-child(1) {
   width: 185px;
 }
