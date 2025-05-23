@@ -9,11 +9,12 @@ body {
   width: 100%;
   max-width: 1000px;
   margin: 20px auto 0px auto;
-  height: 40px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 10px;
 }
 
 .measure_controls {
@@ -615,12 +616,23 @@ div.industry_breakdown_table tbody > tr:hover {
 }
 
 @media (max-width: 600px) {
+  #map_controls {
+    align-items: center;
+    justify-content: center;
+    column-gap: 10px;
+  }
+
   #leaflet_map {
-    margin-top: 5px;
+    margin-top: 10px;
+    height: 450px;
   }
 
   div.industry_breakdown_table {
     margin-top: 5px;
+  }
+
+  div.industry_breakdown_table > div:nth-child(4) {
+    font-size: 12px;
   }
 
   div.industry_breakdown_table table {
