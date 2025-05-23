@@ -35,6 +35,7 @@ body {
   height: 1650px;
   border: none;
   box-sizing: border-box;
+  overflow-y: visible;
 }
 
 .tooltip {
