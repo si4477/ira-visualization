@@ -615,7 +615,7 @@ div.industry_breakdown_table tbody > tr:hover {
   text-decoration: underline;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   #map_controls {
     align-items: center;
     justify-content: center;
