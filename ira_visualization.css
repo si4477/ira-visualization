@@ -10,14 +10,13 @@ body {
   margin: 10px auto 30px auto;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
   box-sizing: border-box;
 }
 
 #ira_container_selector > div {
-  max-width: 200px;
-  margin: 10px 30px;
+  margin: 10px 0px;
   padding: 10px;
   border: 2px solid #aaa;
   border-radius: 8px;
