@@ -637,8 +637,36 @@ div.industry_breakdown_table tbody > tr:hover {
     column-gap: 10px;
   }
 
+  .measure_controls {
+    width: 120px;
+  }
+
+  .measure_controls label {
+    font-size: 10px;
+  }
+
   #leaflet_map {
     height: 450px;
+  }
+
+  .info {
+    font-size: 10px;
+  }
+
+  .info div {
+    font-size: 12px;
+  }
+
+  .legend {
+    min-width: 120px;
+  }
+
+  .legend .labels {
+    font-size: 10px;
+  }
+
+  #zoom_national {
+    font-size: 10px;
   }
 
   div.industry_breakdown_table > div:nth-child(4) {
@@ -647,6 +675,7 @@ div.industry_breakdown_table tbody > tr:hover {
 
   div.industry_breakdown_table table {
     font-size: 12px;
+    max-height: 400px;
   }
 
   div.industry_breakdown_table table td:first-child {
