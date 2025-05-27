@@ -47,6 +47,7 @@ body {
 .tooltip .tooltiptext {
   visibility: hidden;
   width: 200px;
+  box-sizing: border-box;
   background-color: #6e6c6b;
   color: #fff;
   text-align: center;

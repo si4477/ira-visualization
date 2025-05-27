@@ -338,7 +338,8 @@ div.leaflet-top.leaflet-right > div {
 }
 
 #clear_button {
-  width: 90px;
+  width: 110px;
+  box-sizing: border-box;
   background-color: #1176b2;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -624,6 +625,26 @@ div.industry_breakdown_table tbody > tr:hover {
     margin-top: 10px;
   }
 
+  .multiselect:first-child,
+  .multiselect:nth-child(2),
+  .multiselect:nth-child(3),
+  .multiselect:nth-child(4),
+  .multiselect:nth-child(5) {
+    width: 175px;
+  }
+
+  .multiselect input#agency_checkboxes_filter,
+  .multiselect input#program_checkboxes_filter,
+  .multiselect input#project_checkboxes_filter,
+  .multiselect input#state_checkboxes_filter,
+  .multiselect input#district_checkboxes_filter {
+    width: 155px;
+  }
+
+  #clear_button {
+    width: 175px;
+  }
+
   div.industry_breakdown_table {
     margin-top: 5px;
   }
@@ -667,6 +688,15 @@ div.industry_breakdown_table tbody > tr:hover {
     font-size: 12px;
   }
 
+  div.leaflet-top.leaflet-right > div {
+    margin: 10px 10px 0px 0px;
+  }
+  
+  .leaflet-bottom .info.leaflet-control,
+  .leaflet-bottom .national_button_div.leaflet-control {
+    margin: 0px 10px 10px 10px;
+  }
+
   .legend {
     min-width: 120px;
   }
@@ -677,6 +707,10 @@ div.industry_breakdown_table tbody > tr:hover {
 
   #zoom_national {
     font-size: 10px;
+  }
+
+  div.industry_breakdown_table {
+    padding: 10px;
   }
 
   div.industry_breakdown_table > div:nth-child(4) {
@@ -705,6 +739,26 @@ div.industry_breakdown_table tbody > tr:hover {
 }
 
 @media (max-width: 350px) {
+  .multiselect:first-child,
+  .multiselect:nth-child(2),
+  .multiselect:nth-child(3),
+  .multiselect:nth-child(4),
+  .multiselect:nth-child(5) {
+    width: 100%;
+  }
+
+  .multiselect input#agency_checkboxes_filter,
+  .multiselect input#program_checkboxes_filter,
+  .multiselect input#project_checkboxes_filter,
+  .multiselect input#state_checkboxes_filter,
+  .multiselect input#district_checkboxes_filter {
+    width: 100%;
+  }
+
+  #clear_button {
+    width: 100%;
+  }
+
   div.industry_breakdown_table table {
     max-height: 350px;
   }
