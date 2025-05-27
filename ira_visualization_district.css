@@ -769,3 +769,9 @@ div.industry_breakdown_table tbody > tr:hover {
     max-height: 350px;
   }
 }
+
+@media (max-width: 320px) {
+  #leaflet_map {
+    height: 420px;
+  }
+}
