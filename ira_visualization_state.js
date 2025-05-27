@@ -612,7 +612,7 @@ function updateAgencySelectedValues() {
   /* Update the label above the table that lists which
      agencies are selected */
   if (selected_agencies.length > 0) {
-    d3.select(".industry_breakdown_table #table_agencies_label").text("For selected agencies: " + selected_agencies);
+    d3.select(".industry_breakdown_table #table_agencies_label").text("For selected agencies: " + selected_agencies.join(", "));
   }
   else {
     d3.select(".industry_breakdown_table #table_agencies_label").text("For all agencies");
@@ -658,7 +658,7 @@ function updateProgramSelectedValues() {
   /* Update the label above the table that lists which
      programs are selected */
   if (selected_programs.length > 0) {
-    d3.select(".industry_breakdown_table #table_programs_label").text("For selected programs: " + selected_labels);
+    d3.select(".industry_breakdown_table #table_programs_label").text("For selected programs: " + selected_labels.join(", "));
   }
   else {
     d3.select(".industry_breakdown_table #table_programs_label").text("For all programs");
@@ -698,7 +698,8 @@ function updateProjectSelectedValues() {
   /* Update the label above the table that lists which
      projects are selected */
   if (selected_projects.length > 0) {
-    d3.select(".industry_breakdown_table #table_projects_label").text("For selected projects: " + selected_projects);
+    let truncated_projects = selected_projects.map(str => str.length > 20 ? str.substring(0, 20) + "..." : str);
+    d3.select(".industry_breakdown_table #table_projects_label").text("For selected projects: " + truncated_projects.join(", "));
   }
   else {
     d3.select(".industry_breakdown_table #table_projects_label").text("For all projects");
