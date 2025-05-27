@@ -738,6 +738,12 @@ div.industry_breakdown_table tbody > tr:hover {
   }
 }
 
+@media (max-width: 450px) {
+  div.industry_breakdown_table table {
+    max-height: 400px;
+  }
+}
+
 @media (max-width: 350px) {
   .multiselect:first-child,
   .multiselect:nth-child(2),
