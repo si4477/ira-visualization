@@ -1614,6 +1614,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
   geojson_districts = L.geoJson(congressionalDistrictsOutlines, {
     style: style_districts,
     onEachFeature: onEachDistrictFeature,
+    smoothFactor: 0,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
@@ -1621,6 +1622,7 @@ function drawMap(statesOutlines, congressionalDistrictsOutlines) {
   geojson = L.geoJson(statesOutlines, {
     style: style_states,
     onEachFeature: onEachFeature,
+    smoothFactor: 0,
     attribution: '&copy; <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html">U.S. Census Bureau</a>'
   }).addTo(map);
 
