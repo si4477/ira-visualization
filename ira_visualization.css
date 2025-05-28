@@ -7,7 +7,7 @@ body {
 #ira_container_selector {
   width: 100%;
   max-width: 1000px;
-  margin: 10px auto 30px auto;
+  margin: 10px auto;
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;

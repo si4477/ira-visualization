@@ -781,7 +781,8 @@ function updateProgramSelectedValues() {
   /* Update the label above the table that lists which
      programs are selected */
   if (selected_programs.length > 0) {
-    d3.select(".industry_breakdown_table #table_programs_label").text("For selected programs: " + selected_labels.join(", "));
+    let truncated_programs = selected_labels.map(str => str.length > 20 ? str.substring(0, 20) + "..." : str);
+    d3.select(".industry_breakdown_table #table_programs_label").text("For selected programs: " + truncated_programs.join(", "));
   }
   else {
     d3.select(".industry_breakdown_table #table_programs_label").text("For all programs");
