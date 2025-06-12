@@ -1,4 +1,4 @@
-# IRA Funding Freeze Map/Table Visualization
+# IRA Funding Freeze Map Visualization
 
 This repository contains the code for the [funding freeze map
 visualization](https://www.c2es.org/funding-freeze/) on the C2ES website. The
@@ -17,6 +17,7 @@ district-level file is used directly by the district-level visualization, and
 the state-level file is used directly by the state-level visualization.
 
 <br/>
+
 ## Description of Data Processing
 
 There are six files containing raw IMPLAN output data:
@@ -76,6 +77,7 @@ the project names are not truncated in the raw IMPLAN output data for that
 program.
 
 <br/>
+
 ## Description of Visualization Files
 
 As mentioned above, the map visualization has three main parts: the container,
