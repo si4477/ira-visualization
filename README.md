@@ -109,9 +109,10 @@ The district- and state-level visualizations make use of two GeoJSON files:
 * [congressional_districts_outlines.json](/congressional_districts_outlines.json)
 * [states_outlines.json](/states_outlines.json)
 
-These contain the district outlines and the state outlines for the
-district-level and state-level visualizations, respectively. These GeoJSON files
-are modified versions of the [Cartographic Boundary
+The first file contains the outlines of U.S. congressional districts (used only
+by the district-level visualization), and the second file contains the
+outlines of U.S. states (used by both visualizations). These GeoJSON files are
+modified versions of the [Cartographic Boundary
 Files](https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html)
 available from the U.S. Census Bureau, with Alaska and Hawaii repositioned to be
 adjacent to the contiguous United States.
